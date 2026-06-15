@@ -1,0 +1,2222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>氢气经济模具交互界面 / Hydrogen Economy Model Interactive Interface</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --ink: #16202a;
+      --muted: #667085;
+      --line: #d8dee7;
+      --blue: #2563eb;
+      --green: #16855b;
+      --amber: #b7791f;
+      --red: #c2413b;
+      --shadow: 0 14px 40px rgba(22, 32, 42, 0.08);
+      --radius: 8px;
+      font-family: Inter, "SF Pro Text", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+
+    aside {
+      background: #111827;
+      color: #f9fafb;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 7px;
+      padding: 0 6px 10px;
+    }
+
+    .brand strong {
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      color: #aab4c2;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      color: #dbe3ee;
+      padding: 11px 12px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .nav button[aria-selected="true"] {
+      background: #243244;
+      color: #ffffff;
+    }
+
+    .nav .tag {
+      color: #93c5fd;
+      font-size: 12px;
+    }
+
+    .source {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding: 16px 6px 0;
+      color: #aab4c2;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    main {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 820px;
+    }
+
+    .scenario {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .scenario select {
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      outline: none;
+      min-width: 150px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 98px;
+      box-shadow: var(--shadow);
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      font-size: 24px;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .metric small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric.good strong {
+      color: var(--green);
+    }
+
+    .metric.warn strong {
+      color: var(--amber);
+    }
+
+    .metric.bad strong {
+      color: var(--red);
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .panel-head span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .group-title {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .control {
+      display: grid;
+      gap: 7px;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .control label span:last-child {
+      color: var(--muted);
+      text-align: right;
+      min-width: 72px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 92px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    input[type="number"] {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 9px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .chart-box {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 290px;
+      background: #fbfcfe;
+    }
+
+    .chart-box h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 240px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-top: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 680px;
+    }
+
+    table.compact-table {
+      min-width: 560px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: var(--surface-2);
+    }
+
+    .formula {
+      padding: 12px 16px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .table-notes {
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .table-notes strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .table-notes div + div {
+      margin-top: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1080px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 16px;
+      }
+
+      header {
+        display: grid;
+      }
+
+      .nav {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .metric strong {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <strong>氢气经济模具交互界面</strong>
+        <span>Hydrogen Economy Model Interactive Interface<br>基于现有文件抽取的中英文测算界面 / Bilingual interface based on local model files</span>
+      </div>
+      <nav class="nav" aria-label="模型切换 / Model navigation">
+        <button data-view="h2" aria-selected="true">
+          <span>制氢成本 / H2 Cost</span>
+          <span class="tag">H2</span>
+        </button>
+        <button data-view="power" aria-selected="false">
+          <span>风光电成本 / Power LCOE</span>
+          <span class="tag">LCOE</span>
+        </button>
+        <button data-view="chain" aria-selected="false">
+          <span>全链条经济性 / Value Chain</span>
+          <span class="tag">EU</span>
+        </button>
+        <button data-view="products" aria-selected="false">
+          <span>衍生品联动 / PtX Linkage</span>
+          <span class="tag">PtX</span>
+        </button>
+        <button data-view="compare" aria-selected="false">
+          <span>敏感性对比 / Sensitivity</span>
+          <span class="tag">Δ</span>
+        </button>
+      </nav>
+      <div class="source">
+        来源文件 / Source files:<br>
+        _README_Refire_Index.md<br>
+        YC-Format Centers.xlsx<br>
+        光电&风电成本分析 副本.xlsx<br>
+        20251222_重塑能源氢能战略规划_第二次研讨会_重塑共享版.pdf
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <div>
+          <h1 id="pageTitle">氢气经济模具交互界面 / Hydrogen Economy Model Interactive Interface</h1>
+          <p class="subtitle" id="pageSubtitle">把 Excel 中的关键制氢参数转成可调输入，实时查看人民币单位制氢成本、美元折算、年产量、NPV 和投资回收期。 / Converts key Excel hydrogen parameters into adjustable inputs and shows RMB LCOH, USD conversion, annual output, NPV and payback.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <div class="scenario">
+            <label for="exchangeRateSelect">汇率 / FX</label>
+            <select id="exchangeRateSelect">
+              <option value="6.5">6.5</option>
+              <option value="6.8" selected>6.8</option>
+              <option value="7.0">7.0</option>
+              <option value="7.2">7.2</option>
+              <option value="7.5">7.5</option>
+            </select>
+          </div>
+          <div class="scenario">
+            <label for="scenarioSelect">情景 / Scenario</label>
+            <select id="scenarioSelect">
+              <option value="base">Base Case</option>
+              <option value="lowPower">低电价 / Low Power Price</option>
+              <option value="highUtil">高利用率 / High Utilization</option>
+              <option value="stress">压力测试 / Stress Case</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <section class="dashboard" id="metrics"></section>
+
+      <section id="view-h2" class="workbench">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>输入参数 / Inputs</h2>
+            <span>Excel: simu-H2 Price</span>
+          </div>
+          <div class="controls">
+            <div class="control">
+              <label for="equipmentRouteSelect">
+                <span>设备价格情景 / Equipment price case</span>
+                <span>按规模与技术路线 / By scale and technology</span>
+              </label>
+              <select id="equipmentRouteSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="alkLow">ALK 低位 1200 元/kW / ALK low</option>
+                <option value="alkHigh">ALK 高位 1600 元/kW / ALK high</option>
+                <option value="pem">PEM 3000 元/kW / PEM system</option>
+                <option value="custom">自定义设备成本 / Custom equipment cost</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="capacityBasisSelect">
+                <span>产能输入口径 / Capacity input basis</span>
+                <span>标方或额定功率联动 / Nm3/h or kW linked</span>
+              </label>
+              <select id="capacityBasisSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="nm3">按标方 Nm3/h / Use Nm3/h</option>
+                <option value="kw">按功率 kW / Use kW</option>
+              </select>
+            </div>
+          </div>
+          <div class="controls" id="h2Controls"></div>
+          <div class="formula">设备价采用 2025-2026 中国市场单 kW 口径正常成交带：ALK 1200-1600 元/kW、PEM 2800-3200 元/kW（含电源/BOP；低于成本的极端中标价如 ALK 416、PEM 1490 元/kW 不作基准）。项目规模测算采用 1000 Nm3/h = 5 MW 简化口径。折现率基准：央企新能源税前全投资 IRR 红线 6%-6.5%（大唐 2025），本模型默认 5% 仅作筛选。 / Equipment prices use the 2025-26 China sustainable band on an RMB/kW basis: ALK 1,200-1,600, PEM 2,800-3,200 (incl. rectifier/BOP; below-cost outliers such as ALK 416 and PEM 1,490 RMB/kW excluded). SOE hurdle-rate benchmark: 6-6.5% pre-tax full-investment IRR (Datang 2025); the 5% default is for screening only.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>结果面板 / Results</h2>
+            <span>年度现金流与成本拆分 / Annual cash flow and cost breakdown</span>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>单位成本拆分 / Unit cost breakdown</h3>
+              <canvas id="h2CostChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>项目现金流 / Project cash flow</h3>
+              <canvas id="h2CashChart"></canvas>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>项目 / Item</th>
+                  <th>数值 / Value</th>
+                  <th>单位 / Unit</th>
+                  <th>美元折算 / USD</th>
+                </tr>
+              </thead>
+              <tbody id="h2Table"></tbody>
+            </table>
+          </div>
+          <div class="table-notes" id="h2Notes"></div>
+        </div>
+      </section>
+
+      <section id="view-power" class="workbench hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>输入参数 / Inputs</h2>
+            <span>Excel: PV / 风电 / Wind</span>
+          </div>
+          <div class="controls" id="powerControls"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>结果面板 / Results</h2>
+            <span>PV 与风电 LCOE / PV and wind LCOE</span>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>LCOE 对比 / LCOE comparison</h3>
+              <canvas id="powerBarChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>年度发电量 / Annual generation</h3>
+              <canvas id="powerGenChart"></canvas>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>项目 / Item</th>
+                  <th>PV</th>
+                  <th>风电 / Wind</th>
+                  <th>单位 / Unit</th>
+                </tr>
+              </thead>
+              <tbody id="powerTable"></tbody>
+            </table>
+          </div>
+          <div class="formula">LCOE = 全生命周期折现成本 / 全生命周期折现上网电量。此页采用从原表读取的默认容量、等效小时数、投资单价和运维参数。 / LCOE = discounted lifecycle cost / discounted lifecycle grid-delivered electricity. Defaults come from the original workbook capacity, full-load hours, CAPEX and O&M assumptions.</div>
+        </div>
+      </section>
+
+      <section id="view-chain" class="workbench hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>链条与政策参数 / Chain and Policy Inputs</h2>
+            <span>PDF: 欧盟政策与支付意愿 / EU policy and willingness to pay</span>
+          </div>
+          <div class="controls">
+            <div class="control">
+              <label for="chainApplicationSelect">
+                <span>终端应用 / End use</span>
+                <span>自动带入 PDF 参考值 / Auto-fill PDF benchmarks</span>
+              </label>
+              <select id="chainApplicationSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="refining">炼化 RFNBO / Refining RFNBO</option>
+                <option value="shipping">航运 FuelEU Maritime / Shipping</option>
+                <option value="aviation">航空 eSAF / Aviation eSAF</option>
+                <option value="ammonia">绿氨出口欧洲 / Green ammonia export to Europe</option>
+                <option value="steel">钢铁/绿钢溢价 / Steel green premium</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="chainTransportSelect">
+                <span>储运方案 / Transport mode</span>
+                <span>来自 Format 储运价格图 / From Format transport-cost image</span>
+              </label>
+              <select id="chainTransportSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;"></select>
+            </div>
+          </div>
+          <div class="controls" id="chainControls"></div>
+          <div class="formula">PDF 参考：EU ETS 碳价约 80-90 欧元/吨 CO2；尚未落地的部分合规惩罚可按 1.5 倍 EU ETS 估算；2030 欧洲绿氢成本参考约 4.8 欧元/kg。运输成本交叉验证：《长管拖车氢气运输成本测算》（500kg/天、含 20% 残余率）给出 50km≈5.43、100km≈8.66、500km≈20.18 元/kg，与本页 YC-Format 图14 口径同量级。 / PDF references: EU ETS carbon price around EUR 80-90/tCO2; penalties can be estimated at 1.5x EU ETS; 2030 European green H2 cost ~EUR 4.8/kg. Transport cross-check (500 kg/day tube-trailer study): 50km 5.43 / 100km 8.66 / 500km 20.18 RMB/kg, consistent in magnitude with the YC-Format basis used here.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>全链条结果 / Value Chain Results</h2>
+            <span>成本、碳税价值与支付意愿 / Cost, carbon value and WTP</span>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>落地成本构成 / Delivered cost stack</h3>
+              <canvas id="chainCostChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>政策价值与支付意愿 / Policy value and WTP</h3>
+              <canvas id="chainPolicyChart"></canvas>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>项目 / Item</th>
+                  <th>数值 / Value</th>
+                  <th>单位 / Unit</th>
+                  <th>口径 / Basis</th>
+                </tr>
+              </thead>
+              <tbody id="chainTable"></tbody>
+            </table>
+          </div>
+          <div class="formula">净等效成本 = 含物流/认证/转换/贸易后的落地成本 - 碳税或合规惩罚规避价值。该页用于战略筛选，正式项目仍需接入具体合同、认证边界和运输方案。 / Net effective cost = delivered cost after logistics, certification, conversion and trading margin minus avoided carbon tax or compliance penalty value. Use this page for strategic screening; project decisions still need contract terms, certification boundaries and transport design.</div>
+        </div>
+      </section>
+
+      <section id="view-products" class="workbench hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>绿电到原料价格 / Renewable Power to Product Prices</h2>
+            <span>H2 -> NH3 / MeOH / eSAF</span>
+          </div>
+          <div class="controls">
+            <div class="control">
+              <label for="productLinkModeSelect">
+                <span>氢价口径 / H2 cost basis</span>
+                <span>联动制氢页或手工模拟 / Linked to H2 tab or manual</span>
+              </label>
+              <select id="productLinkModeSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="linked">联动制氢页（电价+氢价自动带入） / Linked to H2 cost tab</option>
+                <option value="manualPower">本页绿电价重算氢价 / Recalc H2 cost from this page's power price</option>
+                <option value="manualH2">直接手填氢价 / Manual H2 price</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="productPresetSelect">
+                <span>路线情景 / Route scenario</span>
+                <span>自动带入消耗量 / Auto-fill consumption factors</span>
+              </label>
+              <select id="productPresetSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="base">项目基准 / Project base case</option>
+                <option value="stoich">理论化学计量下限 / Stoichiometric lower bound</option>
+                <option value="conservative">工程保守 / Conservative engineering case</option>
+                <option value="custom">手动参数 / Manual inputs</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="ammoniaRouteSelect">
+                <span>绿氨路线 / Green ammonia route</span>
+                <span>Haber-Bosch 形态 / Haber-Bosch configuration</span>
+              </label>
+              <select id="ammoniaRouteSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="hbElectric">电解氢 + 空分 + 全电 HB / Electrolytic H2 + ASU + all-electric HB</option>
+                <option value="hbHeatRecovery">电解氢 + 余热回收 HB / Electrolytic H2 + heat-recovery HB</option>
+                <option value="modularFlexible">柔性/小型模块化 HB / Flexible modular HB</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="methanolRouteSelect">
+                <span>甲醇路线 / Methanol route</span>
+                <span>CO2 / 合成气来源 / CO2 or syngas source</span>
+              </label>
+              <select id="methanolRouteSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="co2Direct">CO2 直接加氢 / Direct CO2 hydrogenation</option>
+                <option value="rwgsSyngas">RWGS + 合成气制甲醇 / RWGS + syngas methanol</option>
+                <option value="coRichSyngas">CO-rich 合成气补绿氢 / CO-rich syngas with green H2</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="esafRouteSelect">
+                <span>eSAF 路线 / eSAF route</span>
+                <span>PtL 工艺 / PtL process</span>
+              </label>
+              <select id="esafRouteSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
+                <option value="ftRwgs">RWGS + Fischer-Tropsch / RWGS + 费托合成</option>
+                <option value="directFt">直接 CO2-FT / 高温共电解 / Direct CO2-FT or high-temperature co-electrolysis</option>
+                <option value="mtj">甲醇制航煤 MtJ / Methanol-to-Jet</option>
+                <option value="ftStoich">合成煤油理论下限 / Synthetic kerosene lower bound</option>
+                <option value="ftConservative">工程保守 PtL / Conservative PtL</option>
+              </select>
+            </div>
+          </div>
+          <div class="controls" id="productControls"></div>
+          <div class="formula">原料价格 = 绿电价驱动的制氢成本 × 单吨产品耗氢 + CO2 成本 × 单吨产品耗 CO2 + 辅助电耗 × 绿电价 + 其他转化成本。默认值用于战略筛选，可按具体装置、碳源、认证边界和副产物分摊调整。 / Product price = power-linked H2 cost x H2 consumption + CO2 cost x CO2 consumption + auxiliary power x renewable power price + other conversion cost. Defaults are for screening and can be adjusted for the actual plant, carbon source, certification boundary and by-product allocation.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>联动测算结果 / Linked Results</h2>
+            <span>当前电价与敏感性 / Current power price and sensitivity</span>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>当前原料价格 / Current product prices</h3>
+              <canvas id="productPriceChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>绿电价敏感性 / Renewable power sensitivity</h3>
+              <canvas id="productSensitivityChart"></canvas>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>产品/路线 / Product-route</th>
+                  <th>当前价格 / Current price</th>
+                  <th>耗氢 / H2 use</th>
+                  <th>CO2</th>
+                  <th>成本拆分 / Cost stack</th>
+                  <th>参考口径 / Basis</th>
+                </tr>
+              </thead>
+              <tbody id="productTable"></tbody>
+            </table>
+          </div>
+          <div class="formula">默认“联动制氢页”：电价与氢价自动取自制氢成本页，改那边参数这页实时跟随；切到手工模式可用本页绿电价重算氢价，或直接手填氢价做模拟，均不影响制氢页参数。市场对标：绿色甲醇全球售价短期约 800-1200 美元/吨（电制路线对标区间上沿，《全球绿色甲醇价格汇总》）；绿氨成本参考 2920-4600 元/吨（对应绿氢 12-20 元/kg，《绿氨经济性分析》：制氢成本每降 1 元/kg，合成氨成本约降 190 元/吨）。 / Benchmarks: global green methanol price ~USD 800-1200/t near term (e-methanol at the upper end); green ammonia cost reference RMB 2,920-4,600/t at H2 cost 12-20 RMB/kg (each 1 RMB/kg drop in H2 cost cuts ammonia cost ~190 RMB/t).</div>
+        </div>
+      </section>
+
+      <section id="view-compare" class="panel hidden">
+        <div class="panel-head">
+          <h2>敏感性对比 / Sensitivity</h2>
+          <span>观察关键变量对输出的影响 / See how key variables move the outputs</span>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-box">
+            <h3>电价对制氢成本的影响 / Power price impact on LCOH</h3>
+            <canvas id="sensitivityPowerPrice"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>投资单价对 LCOE 的影响 / CAPEX impact on LCOE</h3>
+            <canvas id="sensitivityCapex"></canvas>
+          </div>
+        </div>
+        <div class="formula">敏感性页复用当前页面输入，不改变你的基准参数。 / The sensitivity page reuses current inputs without changing the base parameters.</div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const fmt = {
+      money: (v, currency = "$") => `${currency}${Math.round(v).toLocaleString("en-US")}`,
+      money2: (v, currency = "$") => `${currency}${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`,
+      num: (v, digits = 0) => Number(v).toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }),
+      pct: (v, digits = 1) => `${(v * 100).toFixed(digits)}%`,
+      cnMoney: (v) => `¥${Math.round(v).toLocaleString("en-US")}`,
+      cnMoney2: (v) => `¥${Number(v).toLocaleString("en-US", { maximumFractionDigits: 3, minimumFractionDigits: 3 })}`,
+      cnCompact: (v) => {
+        if (Math.abs(v) >= 100000000) return `¥${Number(v / 100000000).toLocaleString("en-US", { maximumFractionDigits: 2 })}亿`;
+        if (Math.abs(v) >= 10000) return `¥${Number(v / 10000).toLocaleString("en-US", { maximumFractionDigits: 1 })}万`;
+        return `¥${Math.round(v).toLocaleString("en-US")}`;
+      },
+      usd: (v) => `$${Math.round(v).toLocaleString("en-US")}`,
+      usd2: (v) => `$${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+    };
+
+    const sizingKwhPerNm3 = 5;
+
+    const h2Defaults = {
+      capacityMode: "nm3",
+      capacityNm3h: 250,
+      capacityKw: 1347.5,
+      density: 0.089,
+      life: 20,
+      discountRate: 0.05,
+      days: 320,
+      hours: 12,
+      sellingPrice: 34.0,
+      equipmentRoute: "alkLow",
+      capexFactor: 1,
+      equipmentCapex: 1617000,
+      infrastructureCapex: 1020000,
+      electricityPrice: 0.68,
+      energyIntensity: 5.39,
+      projectPowerMw: 1000,
+      alkUnitNm3h: 1000,
+      pemUnitNm3h: 250,
+      alkUnitsPerBlock: 8,
+      pemUnitsPerBlock: 2,
+      overhaulRatio: 0.15,
+      overhaulHours: 30000,
+      waterLitersKg: 9.1364,
+      waterPrice: 0.005,
+      maintenance: 136000,
+      labor: 136000
+    };
+
+    const powerDefaults = {
+      discountRate: 0.06,
+      pvCapacity: 120,
+      pvLife: 25,
+      pvHours: 2461,
+      pvCapexKw: 3224.34,
+      pvDegradation: 0.005,
+      pvRepairRate: 0.004,
+      pvInsuranceRate: 0.0028,
+      pvMaterialMw: 25000,
+      pvOtherMw: 30000,
+      windCapacity: 350,
+      windLife: 20,
+      windHours: 2200,
+      windCapexKw: 8459,
+      windDegradation: 0.003,
+      windRepairRate: 0.007,
+      windInsuranceRate: 0.0025,
+      windMaterialMw: 20000,
+      windOtherMw: 30000
+    };
+
+    const equipmentRoutes = {
+      alkLow: {
+        label: "ALK 低位 / ALK low",
+        source: "正常成交带下沿 1200 元/kW（含电源/BOP）。2025 年 1000Nm3 整套中标主流 500-700 万元/套（约 1000-1400 元/kW，低端含抢单价）；低于成本的极端价（最低 416 元/kW 裸槽）不作测算基准 / Lower end of the sustainable band, RMB 1,200/kW incl. rectifier and BOP; below-cost outliers (record 416 RMB/kW bare stack) excluded",
+        per1000Wan: null,
+        rmbKw: 1200
+      },
+      alkHigh: {
+        label: "ALK 高位 / ALK high",
+        source: "正常成交带上沿 1600 元/kW，与 2026 年初行业调查成本线约 1500 元/kW 及 2024 年均价 1400-1556 元/kW 一致，适用于常规配置或非压价场景 / Upper end of the sustainable band, RMB 1,600/kW, consistent with the ~1,500 RMB/kW industry cost line (2026 survey) and 2024 averages",
+        per1000Wan: null,
+        rmbKw: 1600
+      },
+      pem: {
+        label: "PEM 系统 / PEM system",
+        source: "正常成交带 2800-3200 元/kW，取 3000。2025 年公开中标 2500-3500 元/kW（500Nm3 系统 676.6/870 万元），最低 1490 元/kW 为激进报价不作基准；较 2024 年 5350-6300 元/kW 大幅下降 / Sustainable band RMB 2,800-3,200/kW, midpoint 3,000; 2025 awards span 2,500-3,500 with an aggressive 1,490 outlier; down sharply from 5,350-6,300 in 2024",
+        per1000Wan: null,
+        rmbKw: 3000
+      },
+      custom: {
+        label: "自定义设备成本 / Custom equipment cost",
+        source: "手动输入 / Manual input",
+        per1000Wan: null,
+        rmbKw: null
+      }
+    };
+
+    const chainProfiles = {
+      refining: {
+        label: "炼化 RFNBO / Refining RFNBO",
+        policy: "RED III / BImSchG，炼化场景支付意愿高，PDF 显示 2025-2030 年较早打平 / High WTP in refining; PDF suggests early break-even around 2025-2030",
+        carbonPriceEur: 85,
+        penaltyMultiplier: 1.5,
+        policyCoverage: 0.8,
+        avoidedEmissionKg: 9,
+        wtpEurKg: 9.7,
+        conversionCost: 0
+      },
+      shipping: {
+        label: "航运 FuelEU Maritime / Shipping FuelEU Maritime",
+        policy: "FuelEU Maritime，PDF 提到违规处罚约 640 欧元/吨 CO2e / PDF notes non-compliance penalty around EUR 640/tCO2e",
+        carbonPriceEur: 640,
+        penaltyMultiplier: 1,
+        policyCoverage: 0.55,
+        avoidedEmissionKg: 9,
+        wtpEurKg: 8.5,
+        conversionCost: 6
+      },
+      aviation: {
+        label: "航空 eSAF / Aviation eSAF",
+        policy: "ReFuelEU Aviation，2030 年起 eSAF 掺混要求；PDF 显示航空支付意愿最高 / eSAF sub-mandate from 2030; PDF shows the highest aviation WTP",
+        carbonPriceEur: 85,
+        penaltyMultiplier: 1.5,
+        policyCoverage: 0.75,
+        avoidedEmissionKg: 9,
+        wtpEurKg: 11.6,
+        conversionCost: 10
+      },
+      ammonia: {
+        label: "绿氨出口欧洲 / Green ammonia export to Europe",
+        policy: "CBAM 对绿氨单独拉动有限，2030 年更多依赖 RED III 绿氢比例政策 / CBAM alone has limited pull for green ammonia; 2030 economics rely more on RED III green hydrogen share",
+        carbonPriceEur: 85,
+        penaltyMultiplier: 1.5,
+        policyCoverage: 0.65,
+        avoidedEmissionKg: 9,
+        wtpEurKg: 6.5,
+        conversionCost: 5
+      },
+      steel: {
+        label: "钢铁/绿钢溢价 / Steel green premium",
+        policy: "主要由碳价与绿钢溢价驱动；PDF 以 100 欧元/吨绿钢溢价估算支付意愿 / Driven by carbon price and green steel premium; PDF estimates WTP using EUR 100/t green steel premium",
+        carbonPriceEur: 85,
+        penaltyMultiplier: 1,
+        policyCoverage: 0.6,
+        avoidedEmissionKg: 9,
+        wtpEurKg: 4.1,
+        conversionCost: 3
+      }
+    };
+
+    const chainDefaults = {
+      application: "refining",
+      transportMode: "tube20_100",
+      eurRate: 7.4,
+      carbonPriceEur: chainProfiles.refining.carbonPriceEur,
+      penaltyMultiplier: chainProfiles.refining.penaltyMultiplier,
+      policyCoverage: chainProfiles.refining.policyCoverage,
+      avoidedEmissionKg: chainProfiles.refining.avoidedEmissionKg,
+      logisticsCost: 7.79,
+      certificationCost: 0.4,
+      conversionCost: chainProfiles.refining.conversionCost,
+      tradingMargin: 0.08,
+      wtpEurKg: chainProfiles.refining.wtpEurKg
+    };
+
+    const transportProfiles = {
+      tube20_50: { label: "20MPa 长管拖车 50 km / Tube trailer 50 km", cost: 4.19, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_100: { label: "20MPa 长管拖车 100 km / Tube trailer 100 km", cost: 7.79, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_150: { label: "20MPa 长管拖车 150 km / Tube trailer 150 km", cost: 8.69, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_200: { label: "20MPa 长管拖车 200 km / Tube trailer 200 km", cost: 9.59, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_250: { label: "20MPa 长管拖车 250 km / Tube trailer 250 km", cost: 10.49, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_300: { label: "20MPa 长管拖车 300 km / Tube trailer 300 km", cost: 16.77, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_350: { label: "20MPa 长管拖车 350 km / Tube trailer 350 km", cost: 17.68, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_400: { label: "20MPa 长管拖车 400 km / Tube trailer 400 km", cost: 18.58, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_450: { label: "20MPa 长管拖车 450 km / Tube trailer 450 km", cost: 19.48, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      tube20_500: { label: "20MPa 长管拖车 500 km / Tube trailer 500 km", cost: 20.38, source: "YC-Format Centers.numbers，图14：20Mpa 长管拖车运氢成本测算 / Format image: 20MPa tube-trailer H2 transport cost" },
+      custom: { label: "手动输入 / Manual input", cost: null, source: "手动输入 / Manual input" }
+    };
+
+    const productPresets = {
+      base: {
+        label: "项目基准 / Project base case",
+        ammoniaRoute: "hbElectric",
+        ammoniaH2KgT: 176.5,
+        ammoniaAuxPowerKwhT: 800,
+        ammoniaOtherCostT: 350,
+        methanolRoute: "co2Direct",
+        methanolH2KgT: 187.5,
+        methanolCo2TonT: 1.373,
+        methanolAuxPowerKwhT: 300,
+        methanolOtherCostT: 550,
+        esafRoute: "ftRwgs",
+        esafH2KgT: 650,
+        esafCo2TonT: 3.1,
+        esafAuxPowerKwhT: 1200,
+        esafOtherCostT: 3200,
+        note: "在理论值基础上给 eSAF 留出合成、升级和收率损失。 / Adds synthesis, upgrading and yield losses to the eSAF lower bound."
+      },
+      stoich: {
+        label: "理论化学计量下限 / Stoichiometric lower bound",
+        ammoniaRoute: "hbHeatRecovery",
+        ammoniaH2KgT: 176.5,
+        ammoniaAuxPowerKwhT: 700,
+        ammoniaOtherCostT: 250,
+        methanolRoute: "co2Direct",
+        methanolH2KgT: 187.5,
+        methanolCo2TonT: 1.373,
+        methanolAuxPowerKwhT: 200,
+        methanolOtherCostT: 400,
+        esafRoute: "ftStoich",
+        esafH2KgT: 430,
+        esafCo2TonT: 3.1,
+        esafAuxPowerKwhT: 800,
+        esafOtherCostT: 2200,
+        note: "接近化学计量或行业规划下限，不代表实际项目可直接达到。 / Close to stoichiometric or planning lower bound; not directly achievable for every project."
+      },
+      conservative: {
+        label: "工程保守 / Conservative engineering case",
+        ammoniaRoute: "modularFlexible",
+        ammoniaH2KgT: 180,
+        ammoniaAuxPowerKwhT: 1000,
+        ammoniaOtherCostT: 500,
+        methanolRoute: "rwgsSyngas",
+        methanolH2KgT: 210,
+        methanolCo2TonT: 1.45,
+        methanolAuxPowerKwhT: 500,
+        methanolOtherCostT: 800,
+        esafRoute: "ftConservative",
+        esafH2KgT: 800,
+        esafCo2TonT: 3.4,
+        esafAuxPowerKwhT: 1800,
+        esafOtherCostT: 4500,
+        note: "用于覆盖低收率、额外压缩、精制和项目早期爬坡风险。 / Covers lower yield, extra compression, refining and early ramp-up risk."
+      }
+    };
+
+    const productRoutes = {
+      ammonia: {
+        hbElectric: {
+          label: "电解氢 + 空分 + 全电 HB / Electrolytic H2 + ASU + all-electric HB",
+          route: "Haber-Bosch all-electric",
+          h2KgT: 176.5,
+          co2TonT: 0,
+          auxPowerKwhT: 800,
+          otherCostT: 350,
+          basis: "绿氨主路线；N2 + 3H2 -> 2NH3，辅助电耗包含空分、压缩、合成循环。 / Main green ammonia route; auxiliary power includes ASU, compression and synthesis loop."
+        },
+        hbHeatRecovery: {
+          label: "电解氢 + 余热回收 HB / Electrolytic H2 + heat-recovery HB",
+          route: "Haber-Bosch heat recovery",
+          h2KgT: 176.5,
+          co2TonT: 0,
+          auxPowerKwhT: 600,
+          otherCostT: 450,
+          basis: "大型连续 HB 装置，利用合成反应余热降低净电耗，但项目复杂度和固定成本更高。 / Large continuous HB plant with heat recovery to lower net power use, but higher complexity and fixed cost."
+        },
+        modularFlexible: {
+          label: "柔性/小型模块化 HB / Flexible modular HB",
+          route: "Flexible modular Haber-Bosch",
+          h2KgT: 180,
+          co2TonT: 0,
+          auxPowerKwhT: 1100,
+          otherCostT: 700,
+          basis: "更适合波动绿电耦合，按较高辅助电耗和爬坡损失处理。 / Better suited to variable renewable coupling; modeled with higher auxiliary power and ramping losses."
+        }
+      },
+      methanol: {
+        co2Direct: {
+          label: "CO2 直接加氢 / Direct CO2 hydrogenation",
+          route: "Direct CO2 hydrogenation",
+          h2KgT: 187.5,
+          co2TonT: 1.373,
+          auxPowerKwhT: 300,
+          otherCostT: 550,
+          basis: "CO2 + 3H2 -> CH3OH + H2O；理论约 187.5 kg H2/t MeOH。 / Theoretical H2 use is about 187.5 kg H2/t MeOH."
+        },
+        rwgsSyngas: {
+          label: "RWGS + 合成气制甲醇 / RWGS + syngas methanol",
+          route: "RWGS + syngas methanol",
+          h2KgT: 205,
+          co2TonT: 1.45,
+          auxPowerKwhT: 650,
+          otherCostT: 850,
+          basis: "先用 RWGS 将 CO2 转为 CO，再调 H2/CO 比进入甲醇合成，能耗和循环损失更高。 / CO2 is first converted to CO via RWGS, then the H2/CO ratio is adjusted for methanol synthesis; energy and recycle losses are higher."
+        },
+        coRichSyngas: {
+          label: "CO-rich 合成气补绿氢 / CO-rich syngas with green H2",
+          route: "CO-rich syngas with green H2",
+          h2KgT: 140,
+          co2TonT: 0.7,
+          auxPowerKwhT: 450,
+          otherCostT: 900,
+          basis: "适用于已有 CO/合成气或生物质气化碳源的补氢路线，CO2 采购量和绿氢需求较低。 / Applies when CO/syngas or biomass gasification carbon is available; lower purchased CO2 and green H2 need."
+        }
+      },
+      esaf: {
+        ftRwgs: {
+          label: "RWGS + Fischer-Tropsch",
+          route: "RWGS + FT-SPK",
+          h2KgT: 650,
+          co2TonT: 3.1,
+          auxPowerKwhT: 1200,
+          otherCostT: 3200,
+          basis: "PtL 主路线；CO2 先经 RWGS 得到 CO，再 FT 合成并加氢升级到航煤馏分。 / Main PtL route: CO2 is converted to CO via RWGS, then FT synthesis and hydro-upgrading produce jet-range fuel."
+        },
+        directFt: {
+          label: "直接 CO2-FT / 高温共电解 / Direct CO2-FT or high-temperature co-electrolysis",
+          route: "Direct CO2-FT / co-electrolysis",
+          h2KgT: 560,
+          co2TonT: 3.0,
+          auxPowerKwhT: 1500,
+          otherCostT: 3800,
+          basis: "以 SOEC 共电解或直接 CO2 转化减少外部 H2 需求，但技术成熟度和系统成本更敏感。 / Uses SOEC co-electrolysis or direct CO2 conversion to reduce external H2 demand, but is more sensitive to technology maturity and system cost."
+        },
+        mtj: {
+          label: "甲醇制航煤 MtJ / Methanol-to-Jet",
+          route: "Methanol-to-Jet",
+          h2KgT: 700,
+          co2TonT: 3.0,
+          auxPowerKwhT: 1600,
+          otherCostT: 3600,
+          basis: "先制绿色甲醇，再经 MtJ 升级为航煤；路线更灵活但多一道转化。 / Produces green methanol first and upgrades through MtJ; more flexible but adds another conversion step."
+        },
+        ftStoich: {
+          label: "合成煤油理论下限 / Synthetic kerosene lower bound",
+          route: "Synthetic kerosene lower-bound",
+          h2KgT: 430,
+          co2TonT: 3.1,
+          auxPowerKwhT: 800,
+          otherCostT: 2200,
+          basis: "EHB 规划参考约 430 kg H2/t 合成煤油，接近系统规划下限。 / EHB planning reference is about 430 kg H2/t synthetic kerosene, close to a system lower bound."
+        },
+        ftConservative: {
+          label: "工程保守 PtL / Conservative PtL",
+          route: "Conservative PtL",
+          h2KgT: 800,
+          co2TonT: 3.4,
+          auxPowerKwhT: 1800,
+          otherCostT: 4500,
+          basis: "覆盖低单程转化率、尾气循环、精制、认证和项目早期爬坡损失。 / Covers low single-pass conversion, tail-gas recycle, refining, certification and early ramp-up losses."
+        }
+      }
+    };
+
+    const productDefaults = {
+      preset: "base",
+      linkMode: "linked",
+      greenPowerPrice: 0.68,
+      manualH2Price: 30,
+      co2CostT: 480,
+      ...productPresets.base
+    };
+
+    const scenarios = {
+      base: {},
+      lowPower: { electricityPrice: 0.408, sellingPrice: 30.6 },
+      highUtil: { days: 350, hours: 18, sellingPrice: 32.64 },
+      stress: { electricityPrice: 1.088, equipmentCapex: 9180000, sellingPrice: 28.56 }
+    };
+
+    const state = {
+      view: "h2",
+      exchangeRate: 6.8,
+      h2: { ...h2Defaults },
+      power: { ...powerDefaults },
+      chain: { ...chainDefaults },
+      products: { ...productDefaults }
+    };
+
+    const h2Fields = [
+      ["项目参数 / Project", "capacityNm3h", "电解槽产能 / Electrolyzer capacity", "Nm3/h", 50, 1000, 10],
+      ["项目参数 / Project", "capacityKw", "额定功率 / Rated power", "kW", 100, 20000, 50],
+      ["项目参数 / Project", "days", "年运行天数 / Operating days", "天 / days", 120, 365, 1],
+      ["项目参数 / Project", "hours", "日运行小时数 / Daily operating hours", "小时 / h", 4, 24, 1],
+      ["项目参数 / Project", "life", "项目寿命 / Project life", "年 / years", 5, 30, 1],
+      ["项目参数 / Project", "discountRate", "折现率 / Discount rate", "%", 0, 0.15, 0.005, "percent"],
+      ["项目规模与组合 / Project scale & mix", "projectPowerMw", "项目总规模 / Total project power", "MW", 10, 5000, 10],
+      ["项目规模与组合 / Project scale & mix", "alkUnitNm3h", "ALK 单槽产能 / ALK unit capacity", "Nm3/h", 250, 2000, 50],
+      ["项目规模与组合 / Project scale & mix", "pemUnitNm3h", "PEM 单槽产能 / PEM unit capacity", "Nm3/h", 50, 1000, 50],
+      ["项目规模与组合 / Project scale & mix", "alkUnitsPerBlock", "每组 ALK 台数 / ALK units per block", "台 / units", 0, 20, 1, "integer"],
+      ["项目规模与组合 / Project scale & mix", "pemUnitsPerBlock", "每组 PEM 台数 / PEM units per block", "台 / units", 0, 10, 1, "integer"],
+      ["收入 / Revenue", "sellingPrice", "氢气售价 / H2 selling price", "元/kg / RMB/kg", 6.8, 81.6, 0.5],
+      ["CAPEX", "capexFactor", "BOM 到项目 CAPEX 系数 / BOM-to-project CAPEX factor", "x", 0.5, 20, 0.1],
+      ["CAPEX", "equipmentCapex", "设备成本 / Equipment cost", "元 / RMB", 680000, 120000000, 100000],
+      ["CAPEX", "infrastructureCapex", "基础设施成本 / Infrastructure cost", "元 / RMB", 0, 5440000, 68000],
+      ["OPEX", "electricityPrice", "电价 / Power price", "元/kWh / RMB/kWh", 0.136, 2.04, 0.01],
+      ["OPEX", "energyIntensity", "系统电耗 / System electricity intensity", "kWh/Nm3 H2", 3.8, 6.5, 0.05],
+      ["OPEX", "waterLitersKg", "耗水 / Water use", "L/kg", 5, 15, 0.1],
+      ["OPEX", "waterPrice", "水价 / Water price", "元/L / RMB/L", 0, 0.05, 0.0005],
+      ["OPEX", "overhaulRatio", "大修费用比例 / Overhaul cost ratio", "%", 0, 0.4, 0.01, "percent"],
+      ["OPEX", "overhaulHours", "大修周期 / Overhaul interval", "小时 / h", 20000, 80000, 1000],
+      ["OPEX", "maintenance", "年维护费用 / Annual maintenance", "元/年 / RMB/year", 0, 816000, 6800],
+      ["OPEX", "labor", "年人工成本 / Annual labor cost", "元/年 / RMB/year", 0, 816000, 6800]
+    ];
+
+    const powerFields = [
+      ["通用 / General", "discountRate", "折现率 / Discount rate", "%", 0, 0.14, 0.005, "percent"],
+      ["PV", "pvCapacity", "PV 容量 / PV capacity", "MWp", 10, 500, 5],
+      ["PV", "pvLife", "PV 运行期 / PV life", "年 / years", 5, 30, 1],
+      ["PV", "pvHours", "PV 等效小时 / PV full-load hours", "h/年 / h/year", 800, 2800, 10],
+      ["PV", "pvCapexKw", "PV 静态投资 / PV static CAPEX", "¥/kWp", 1000, 7000, 50],
+      ["PV", "pvDegradation", "PV 年衰减 / PV annual degradation", "%", 0, 0.02, 0.001, "percent"],
+      ["PV", "pvRepairRate", "PV 修理费率 / PV repair rate", "%", 0, 0.03, 0.001, "percent"],
+      ["PV", "pvInsuranceRate", "PV 保险费率 / PV insurance rate", "%", 0, 0.02, 0.001, "percent"],
+      ["风电 / Wind", "windCapacity", "风电容量 / Wind capacity", "MW", 10, 1000, 10],
+      ["风电 / Wind", "windLife", "风电运行期 / Wind life", "年 / years", 5, 30, 1],
+      ["风电 / Wind", "windHours", "风电等效小时 / Wind full-load hours", "h/年 / h/year", 1000, 4500, 10],
+      ["风电 / Wind", "windCapexKw", "风电静态投资 / Wind static CAPEX", "¥/kW", 3000, 14000, 50],
+      ["风电 / Wind", "windDegradation", "风电年衰减 / Wind annual degradation", "%", 0, 0.02, 0.001, "percent"],
+      ["风电 / Wind", "windRepairRate", "风电修理费率 / Wind repair rate", "%", 0, 0.03, 0.001, "percent"],
+      ["风电 / Wind", "windInsuranceRate", "风电保险费率 / Wind insurance rate", "%", 0, 0.02, 0.001, "percent"]
+    ];
+
+    const chainFields = [
+      ["政策 / Policy", "eurRate", "EUR/CNY", "元/EUR / RMB/EUR", 6.5, 8.5, 0.05],
+      ["政策 / Policy", "carbonPriceEur", "碳价/罚款基准 / Carbon price or penalty", "EUR/tCO2e", 0, 800, 5],
+      ["政策 / Policy", "penaltyMultiplier", "惩罚倍数 / Penalty multiplier", "x", 0, 3, 0.1],
+      ["政策 / Policy", "policyCoverage", "政策覆盖比例 / Policy coverage", "%", 0, 1, 0.05, "percent"],
+      ["政策 / Policy", "avoidedEmissionKg", "规避碳排 / Avoided emissions", "kgCO2/kgH2", 0, 20, 0.1],
+      ["链条成本 / Chain cost", "logisticsCost", "储运/到岸成本 / Logistics or landed cost", "元/kg / RMB/kg", 0, 30, 0.5],
+      ["链条成本 / Chain cost", "certificationCost", "认证与合规成本 / Certification and compliance", "元/kg / RMB/kg", 0, 5, 0.1],
+      ["链条成本 / Chain cost", "conversionCost", "转换/裂解成本 / Conversion or cracking cost", "元/kg / RMB/kg", 0, 30, 0.5],
+      ["链条成本 / Chain cost", "tradingMargin", "贸易/服务毛利 / Trading or service margin", "%", 0, 0.3, 0.01, "percent"],
+      ["支付意愿 / WTP", "wtpEurKg", "终端支付意愿 / End-market willingness to pay", "EUR/kg", 0, 15, 0.1]
+    ];
+
+    const productFields = [
+      ["通用 / General", "greenPowerPrice", "绿电价格（手工模式用） / Renewable power price (manual modes)", "元/kWh / RMB/kWh", 0.1, 2, 0.01],
+      ["通用 / General", "manualH2Price", "手填氢价（手填模式用） / Manual H2 price (manual H2 mode)", "元/kg / RMB/kg", 5, 80, 0.5],
+      ["通用 / General", "co2CostT", "CO2 成本 / CO2 cost", "元/tCO2 / RMB/tCO2", 0, 1500, 10],
+      ["绿氨 / Green ammonia", "ammoniaH2KgT", "耗氢 / H2 consumption", "kg H2/t NH3", 150, 240, 0.5],
+      ["绿氨 / Green ammonia", "ammoniaAuxPowerKwhT", "辅助电耗 / Auxiliary power", "kWh/t NH3", 0, 2000, 25],
+      ["绿氨 / Green ammonia", "ammoniaOtherCostT", "其他转化成本 / Other conversion cost", "元/t NH3 / RMB/t NH3", 0, 2000, 50],
+      ["绿色甲醇 / Green methanol", "methanolH2KgT", "耗氢 / H2 consumption", "kg H2/t MeOH", 150, 280, 0.5],
+      ["绿色甲醇 / Green methanol", "methanolCo2TonT", "耗 CO2 / CO2 consumption", "tCO2/t MeOH", 1, 1.8, 0.01],
+      ["绿色甲醇 / Green methanol", "methanolAuxPowerKwhT", "辅助电耗 / Auxiliary power", "kWh/t MeOH", 0, 1500, 25],
+      ["绿色甲醇 / Green methanol", "methanolOtherCostT", "其他转化成本 / Other conversion cost", "元/t MeOH / RMB/t MeOH", 0, 2500, 50],
+      ["eSAF", "esafH2KgT", "耗氢 / H2 consumption", "kg H2/t eSAF", 350, 1000, 5],
+      ["eSAF", "esafCo2TonT", "耗 CO2 / CO2 consumption", "tCO2/t eSAF", 2.5, 4.5, 0.05],
+      ["eSAF", "esafAuxPowerKwhT", "辅助电耗 / Auxiliary power", "kWh/t eSAF", 0, 3500, 50],
+      ["eSAF", "esafOtherCostT", "其他转化成本 / Other conversion cost", "元/t eSAF / RMB/t eSAF", 0, 9000, 100]
+    ];
+
+    function annualProductionH2(input) {
+      return input.capacityNm3h * input.density * input.days * input.hours;
+    }
+
+    function annualVolumeH2(input) {
+      return input.capacityNm3h * input.days * input.hours;
+    }
+
+    function npv(rate, cashflows) {
+      return cashflows.reduce((sum, cf, i) => sum + cf / Math.pow(1 + rate, i), 0);
+    }
+
+    function irr(cashflows) {
+      const hasPositive = cashflows.some(v => v > 0);
+      const hasNegative = cashflows.some(v => v < 0);
+      if (!hasPositive || !hasNegative) return null;
+      let low = -0.95;
+      let high = 1;
+      if (npv(low, cashflows) < 0) return null;
+      if (npv(high, cashflows) > 0) return high;
+      for (let i = 0; i < 80; i++) {
+        const mid = (low + high) / 2;
+        const value = npv(mid, cashflows);
+        if (value > 0) low = mid;
+        else high = mid;
+      }
+      return (low + high) / 2;
+    }
+
+    function crf(rate, life) {
+      if (rate <= 0) return 1 / life;
+      const f = Math.pow(1 + rate, life);
+      return rate * f / (f - 1);
+    }
+
+    function h2Model(input) {
+      const volumeNm3 = annualVolumeH2(input);
+      const production = volumeNm3 * input.density;
+      const ratedKw = input.capacityNm3h * input.energyIntensity;
+      const capexTotal = input.equipmentCapex + input.infrastructureCapex;
+      const capitalRecovery = crf(input.discountRate, input.life);
+      const capexAnnual = capexTotal * capitalRecovery;
+      const powerCost = volumeNm3 * input.energyIntensity * input.electricityPrice;
+      const waterCost = production * input.waterLitersKg * input.waterPrice;
+      const annualHours = input.days * input.hours;
+      const overhaulCost = input.equipmentCapex * input.overhaulRatio;
+      const overhaulIntervalYears = annualHours > 0 ? input.overhaulHours / annualHours : Infinity;
+      const overhaulAnnual = Number.isFinite(overhaulIntervalYears) && overhaulIntervalYears > 0
+        ? overhaulCost / overhaulIntervalYears
+        : 0;
+      const cashOpex = powerCost + waterCost + input.maintenance + input.labor;
+      const opex = cashOpex + overhaulAnnual;
+      const unitCost = (capexAnnual + opex) / production;
+      const revenue = production * input.sellingPrice;
+      const ebitda = revenue - cashOpex;
+      const cashflows = [-capexTotal];
+      for (let year = 1; year <= input.life; year++) {
+        const overhaulsByNow = Math.floor(year * annualHours / input.overhaulHours);
+        const overhaulsBefore = Math.floor((year - 1) * annualHours / input.overhaulHours);
+        const overhaulThisYear = year < input.life && overhaulsByNow > overhaulsBefore ? overhaulCost : 0;
+        cashflows.push(revenue - cashOpex - overhaulThisYear);
+      }
+      const projectNpv = npv(input.discountRate, cashflows);
+      const projectIrr = irr(cashflows);
+      const annualNet = revenue - opex;
+      const payback = annualNet > 0 ? capexTotal / annualNet : Infinity;
+      return {
+        volumeNm3,
+        production,
+        ratedKw,
+        specificEnergyKg: input.energyIntensity / input.density,
+        capexTotal,
+        capitalRecovery,
+        capexAnnual,
+        powerCost,
+        waterCost,
+        overhaulCost,
+        overhaulIntervalYears,
+        overhaulAnnual,
+        cashOpex,
+        opex,
+        unitCost,
+        revenue,
+        ebitda,
+        cashflows,
+        projectNpv,
+        projectIrr,
+        payback
+      };
+    }
+
+    function projectMixModel(input) {
+      const targetKw = input.projectPowerMw * 1000;
+      const alkUnitKw = input.alkUnitNm3h * sizingKwhPerNm3;
+      const pemUnitKw = input.pemUnitNm3h * sizingKwhPerNm3;
+      const alkBlockKw = input.alkUnitsPerBlock * alkUnitKw;
+      const pemBlockKw = input.pemUnitsPerBlock * pemUnitKw;
+      const blockKw = alkBlockKw + pemBlockKw;
+      const blocks = blockKw > 0 ? Math.ceil(targetKw / blockKw) : 0;
+      const alkUnits = blocks * input.alkUnitsPerBlock;
+      const pemUnits = blocks * input.pemUnitsPerBlock;
+      const installedKw = alkUnits * alkUnitKw + pemUnits * pemUnitKw;
+      const installedNm3h = alkUnits * input.alkUnitNm3h + pemUnits * input.pemUnitNm3h;
+      const annualProduction = installedNm3h * input.density * input.days * input.hours;
+      const pemPowerShare = installedKw > 0 ? (pemUnits * pemUnitKw) / installedKw : 0;
+      return {
+        targetKw,
+        alkUnitKw,
+        pemUnitKw,
+        blockKw,
+        blocks,
+        alkUnits,
+        pemUnits,
+        installedKw,
+        installedNm3h,
+        annualProduction,
+        pemPowerShare,
+        spareRate: installedKw > 0 ? installedKw / targetKw - 1 : 0
+      };
+    }
+
+    function projectEquipmentCapex(input, route) {
+      const mix = projectMixModel(input);
+      const ratedKw = input.capacityKw || input.capacityNm3h * input.energyIntensity;
+      if (route && route.rmbKw) return mix.installedKw * route.rmbKw * input.capexFactor;
+      return mix.installedKw * input.equipmentCapex / Math.max(ratedKw, 1);
+    }
+
+    function reportEquipmentCapex(routeKey) {
+      const route = equipmentRoutes[routeKey];
+      if (!route) return state.h2.equipmentCapex;
+      if (route.rmbKw) {
+        const ratedKw = state.h2.capacityKw || state.h2.capacityNm3h * state.h2.energyIntensity;
+        return route.rmbKw * ratedKw * state.h2.capexFactor;
+      }
+      if (route.per1000Wan) {
+        return route.per1000Wan * 10000 * state.h2.capacityNm3h / 1000 * state.h2.capexFactor;
+      }
+      return state.h2.equipmentCapex;
+    }
+
+    function syncEquipmentCapexControl() {
+      const range = document.getElementById("h2-equipmentCapex");
+      const number = document.querySelector('[data-number="h2:equipmentCapex"]');
+      const label = document.querySelector('[data-value="h2:equipmentCapex"]');
+      if (!range || !number || !label) return;
+      range.value = state.h2.equipmentCapex;
+      number.value = state.h2.equipmentCapex;
+      label.textContent = controlDisplayFor("h2", "equipmentCapex", state.h2.equipmentCapex, "元 / RMB");
+    }
+
+    function syncEquipmentRouteSelect() {
+      const select = document.getElementById("equipmentRouteSelect");
+      if (select) select.value = state.h2.equipmentRoute;
+    }
+
+    function applyEquipmentRoute() {
+      const route = equipmentRoutes[state.h2.equipmentRoute];
+      if (route && (route.per1000Wan || route.rmbKw)) {
+        state.h2.equipmentCapex = reportEquipmentCapex(state.h2.equipmentRoute);
+      }
+      syncEquipmentCapexControl();
+    }
+
+    function syncCapacityModeSelect() {
+      const select = document.getElementById("capacityBasisSelect");
+      if (select) select.value = state.h2.capacityMode;
+    }
+
+    function syncControlValue(bucket, fields, key) {
+      const meta = fields.find(([, fieldKey]) => fieldKey === key);
+      if (!meta) return;
+      const [, , , unit, , , , kind] = meta;
+      const value = state[bucket][key];
+      const range = document.getElementById(`${bucket}-${key}`);
+      const number = document.querySelector(`[data-number="${bucket}:${key}"]`);
+      const label = document.querySelector(`[data-value="${bucket}:${key}"]`);
+      if (range) range.value = value;
+      if (number) number.value = value;
+      if (label) label.textContent = controlDisplayFor(bucket, key, value, unit, kind);
+    }
+
+    function refreshH2ControlLabels() {
+      h2Fields.forEach(([, key,, unit,,,, kind]) => {
+        const label = document.querySelector(`[data-value="h2:${key}"]`);
+        if (label) label.textContent = controlDisplayFor("h2", key, state.h2[key], unit, kind);
+      });
+    }
+
+    function syncCapacityFromNm3() {
+      state.h2.capacityKw = state.h2.capacityNm3h * state.h2.energyIntensity;
+      syncControlValue("h2", h2Fields, "capacityKw");
+    }
+
+    function syncCapacityFromKw() {
+      state.h2.capacityNm3h = state.h2.capacityKw / Math.max(state.h2.energyIntensity, 0.001);
+      syncControlValue("h2", h2Fields, "capacityNm3h");
+    }
+
+    function applyTransportProfile() {
+      const profile = transportProfiles[state.chain.transportMode];
+      if (profile && profile.cost !== null) {
+        state.chain.logisticsCost = profile.cost;
+      }
+    }
+
+    function powerModel(kind, input) {
+      const prefix = kind === "pv" ? "pv" : "wind";
+      const capacity = input[`${prefix}Capacity`];
+      const life = input[`${prefix}Life`];
+      const hours = input[`${prefix}Hours`];
+      const capexKw = input[`${prefix}CapexKw`];
+      const degradation = input[`${prefix}Degradation`];
+      const repairRate = input[`${prefix}RepairRate`];
+      const insuranceRate = input[`${prefix}InsuranceRate`];
+      const materialMw = input[`${prefix}MaterialMw`];
+      const otherMw = input[`${prefix}OtherMw`];
+      const capex = capexKw * capacity * 1000;
+      const baseGenKwh = capacity * hours * 1000;
+      let discountedCost = capex;
+      let discountedGen = 0;
+      const generation = [];
+      const costs = [];
+      for (let year = 1; year <= life; year++) {
+        const gen = baseGenKwh * Math.pow(1 - degradation, year - 1);
+        const repair = capex * repairRate;
+        const insurance = capex * insuranceRate;
+        const material = materialMw * capacity;
+        const other = otherMw * capacity;
+        const opex = repair + insurance + material + other;
+        const df = Math.pow(1 + input.discountRate, year);
+        discountedCost += opex / df;
+        discountedGen += gen / df;
+        generation.push(gen);
+        costs.push(opex);
+      }
+      const decommission = capex * 0.02 / Math.pow(1 + input.discountRate, life);
+      discountedCost += decommission;
+      return {
+        capacity,
+        life,
+        hours,
+        capex,
+        baseGenKwh,
+        generation,
+        costs,
+        discountedCost,
+        discountedGen,
+        lcoe: discountedCost / discountedGen,
+        annualOpex: costs[0]
+      };
+    }
+
+    function isRmbUnit(unit) {
+      return unit.includes("元");
+    }
+
+    function toUsd(value) {
+      return value / state.exchangeRate;
+    }
+
+    function eurToRmb(value) {
+      return value * state.chain.eurRate;
+    }
+
+    function chainModel() {
+      const h2 = h2Model(state.h2);
+      const c = state.chain;
+      const directCost = h2.unitCost + c.logisticsCost + c.certificationCost + c.conversionCost;
+      const deliveredCost = directCost * (1 + c.tradingMargin);
+      const carbonValue = c.avoidedEmissionKg / 1000 * c.carbonPriceEur * c.eurRate * c.penaltyMultiplier * c.policyCoverage;
+      const netEffectiveCost = deliveredCost - carbonValue;
+      const wtpRmb = c.wtpEurKg * c.eurRate;
+      const margin = wtpRmb - netEffectiveCost;
+      const annualValue = margin * h2.production;
+      const denominator = c.avoidedEmissionKg / 1000 * c.eurRate * c.penaltyMultiplier * c.policyCoverage;
+      const breakEvenCarbonPrice = denominator > 0 ? Math.max(0, (deliveredCost - wtpRmb) / denominator) : 0;
+      return {
+        ...h2,
+        directCost,
+        deliveredCost,
+        carbonValue,
+        netEffectiveCost,
+        wtpRmb,
+        margin,
+        annualValue,
+        breakEvenCarbonPrice
+      };
+    }
+
+    function h2ModelAtPowerPrice(powerPrice) {
+      return h2Model({ ...state.h2, electricityPrice: powerPrice });
+    }
+
+    function syncProductRouteSelects() {
+      const ammoniaSelect = document.getElementById("ammoniaRouteSelect");
+      const methanolSelect = document.getElementById("methanolRouteSelect");
+      const esafSelect = document.getElementById("esafRouteSelect");
+      if (ammoniaSelect) ammoniaSelect.value = state.products.ammoniaRoute;
+      if (methanolSelect) methanolSelect.value = state.products.methanolRoute;
+      if (esafSelect) esafSelect.value = state.products.esafRoute;
+    }
+
+    function syncTransportSelect() {
+      const select = document.getElementById("chainTransportSelect");
+      if (!select) return;
+      select.innerHTML = Object.entries(transportProfiles).map(([key, profile]) => (
+        `<option value="${key}">${profile.label} - ${profile.cost === null ? "manual" : fmt.cnMoney2(profile.cost) + "/kg"}</option>`
+      )).join("");
+      select.value = state.chain.transportMode;
+    }
+
+    function applyProductRoute(productKey, routeKey) {
+      const route = productRoutes[productKey][routeKey];
+      if (!route) return;
+      const prefix = productKey === "ammonia" ? "ammonia" : productKey === "methanol" ? "methanol" : "esaf";
+      state.products[`${prefix}Route`] = routeKey;
+      state.products[`${prefix}H2KgT`] = route.h2KgT;
+      state.products[`${prefix}Co2TonT`] = route.co2TonT;
+      state.products[`${prefix}AuxPowerKwhT`] = route.auxPowerKwhT;
+      state.products[`${prefix}OtherCostT`] = route.otherCostT;
+      state.products.preset = "custom";
+      document.getElementById("productPresetSelect").value = "custom";
+      syncProductRouteSelects();
+    }
+
+    function productBasis() {
+      const mode = state.products.linkMode || "linked";
+      if (mode === "linked") {
+        const h2 = h2Model(state.h2);
+        return {
+          mode,
+          powerPrice: state.h2.electricityPrice,
+          h2Cost: h2.unitCost,
+          label: `联动制氢页：电价 ${fmt.cnMoney2(state.h2.electricityPrice)}/kWh -> LCOH ${fmt.cnMoney2(h2.unitCost)}/kg / Linked to H2 tab`
+        };
+      }
+      if (mode === "manualH2") {
+        return {
+          mode,
+          powerPrice: state.products.greenPowerPrice,
+          h2Cost: state.products.manualH2Price,
+          label: `手填氢价 ${fmt.cnMoney2(state.products.manualH2Price)}/kg，辅电按本页绿电价 / Manual H2 price; aux power at this page's price`
+        };
+      }
+      const h2 = h2ModelAtPowerPrice(state.products.greenPowerPrice);
+      return {
+        mode,
+        powerPrice: state.products.greenPowerPrice,
+        h2Cost: h2.unitCost,
+        label: `本页绿电 ${fmt.cnMoney2(state.products.greenPowerPrice)}/kWh 重算 LCOH ${fmt.cnMoney2(h2.unitCost)}/kg / Recalculated from this page's power price`
+      };
+    }
+
+    function productModelAtPowerPrice(powerPrice, h2CostOverride) {
+      const h2 = h2ModelAtPowerPrice(powerPrice);
+      const unitH2Cost = h2CostOverride === undefined ? h2.unitCost : h2CostOverride;
+      const p = state.products;
+      const ammoniaRoute = productRoutes.ammonia[p.ammoniaRoute] || productRoutes.ammonia.hbElectric;
+      const methanolRoute = productRoutes.methanol[p.methanolRoute] || productRoutes.methanol.co2Direct;
+      const esafRoute = productRoutes.esaf[p.esafRoute] || productRoutes.esaf.ftRwgs;
+      const rows = [
+        {
+          key: "ammonia",
+          name: "绿氨 NH3 / Green ammonia",
+          route: ammoniaRoute.label,
+          h2KgT: p.ammoniaH2KgT,
+          co2TonT: 0,
+          auxPowerKwhT: p.ammoniaAuxPowerKwhT,
+          otherCostT: p.ammoniaOtherCostT,
+          basis: ammoniaRoute.basis
+        },
+        {
+          key: "methanol",
+          name: "绿色甲醇 / Green methanol",
+          route: methanolRoute.label,
+          h2KgT: p.methanolH2KgT,
+          co2TonT: p.methanolCo2TonT,
+          auxPowerKwhT: p.methanolAuxPowerKwhT,
+          otherCostT: p.methanolOtherCostT,
+          basis: methanolRoute.basis
+        },
+        {
+          key: "esaf",
+          name: "eSAF / Synthetic aviation fuel",
+          route: esafRoute.label,
+          h2KgT: p.esafH2KgT,
+          co2TonT: p.esafCo2TonT,
+          auxPowerKwhT: p.esafAuxPowerKwhT,
+          otherCostT: p.esafOtherCostT,
+          basis: esafRoute.basis
+        }
+      ];
+      return {
+        h2,
+        unitH2Cost,
+        products: rows.map(row => {
+          const h2Cost = unitH2Cost * row.h2KgT;
+          const co2Cost = p.co2CostT * row.co2TonT;
+          const auxPowerCost = powerPrice * row.auxPowerKwhT;
+          const totalCost = h2Cost + co2Cost + auxPowerCost + row.otherCostT;
+          return { ...row, h2Cost, co2Cost, auxPowerCost, totalCost };
+        })
+      };
+    }
+
+    function controlDisplay(value, unit, kind) {
+      if (kind === "percent") return fmt.pct(value);
+      if (kind === "integer") return `${fmt.num(value, 0)} ${unit}`;
+      const digits = value < 10 ? 3 : value < 100 ? 2 : 0;
+      if (unit.includes("EUR")) return `${fmt.num(value, digits)} ${unit}`;
+      if (isRmbUnit(unit)) return `${fmt.num(value, digits)} ${unit} / ≈ ${fmt.usd2(toUsd(value))}`;
+      return `${fmt.num(value, digits)} ${unit}`;
+    }
+
+    function formatNm3AndKw(nm3h) {
+      return `${fmt.num(nm3h, 0)} Nm3/h / ${fmt.num(nm3h * sizingKwhPerNm3, 0)} kW`;
+    }
+
+    function formatKwAndNm3(kw) {
+      const nm3h = kw / Math.max(state.h2.energyIntensity, 0.001);
+      return `${fmt.num(kw, 0)} kW / ${fmt.num(nm3h, 0)} Nm3/h`;
+    }
+
+    function controlDisplayFor(bucket, key, value, unit, kind) {
+      if (bucket === "h2") {
+        if (key === "capacityNm3h" || key === "alkUnitNm3h" || key === "pemUnitNm3h") {
+          return formatNm3AndKw(value);
+        }
+        if (key === "capacityKw") return formatKwAndNm3(value);
+        if (key === "projectPowerMw") {
+          const targetKw = value * 1000;
+          const targetNm3h = targetKw / sizingKwhPerNm3;
+          return `${fmt.num(value, 0)} MW / ${fmt.num(targetNm3h, 0)} Nm3/h`;
+        }
+        if (key === "alkUnitsPerBlock" || key === "pemUnitsPerBlock") {
+          const unitNm3h = key === "alkUnitsPerBlock" ? state.h2.alkUnitNm3h : state.h2.pemUnitNm3h;
+          const subtotalNm3h = value * unitNm3h;
+          const subtotalMw = subtotalNm3h * sizingKwhPerNm3 / 1000;
+          return `${fmt.num(value, 0)} 台 / ${fmt.num(subtotalMw, 1)} MW / ${fmt.num(subtotalNm3h, 0)} Nm3/h`;
+        }
+        if (key === "equipmentCapex") {
+          const route = equipmentRoutes[state.h2.equipmentRoute] || null;
+          const projectCapex = projectEquipmentCapex(state.h2, route);
+          return `单机 ${fmt.cnCompact(value)} / 组合 ${fmt.cnCompact(projectCapex)}`;
+        }
+      }
+      return controlDisplay(value, unit, kind);
+    }
+
+    function groupedControls(container, fields, source, bucket) {
+      const root = document.getElementById(container);
+      root.innerHTML = "";
+      let currentGroup = "";
+      fields.forEach(([group, key, label, unit, min, max, step, kind]) => {
+        if (group !== currentGroup) {
+          currentGroup = group;
+          const title = document.createElement("div");
+          title.className = "group-title";
+          title.textContent = group;
+          root.appendChild(title);
+        }
+        const value = source[key];
+        const display = controlDisplayFor(bucket, key, value, unit, kind);
+        const id = `${bucket}-${key}`;
+        const wrap = document.createElement("div");
+        wrap.className = "control";
+        wrap.innerHTML = `
+          <label for="${id}">
+            <span>${label}</span>
+            <span data-value="${bucket}:${key}">${display}</span>
+          </label>
+          <div class="control-row">
+            <input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}">
+            <input type="number" min="${min}" max="${max}" step="${step}" value="${value}" data-number="${bucket}:${key}">
+          </div>
+        `;
+        root.appendChild(wrap);
+      });
+    }
+
+    function bindControls(fields, bucket) {
+      fields.forEach(([, key,, unit,,,, kind]) => {
+        const range = document.getElementById(`${bucket}-${key}`);
+        const number = document.querySelector(`[data-number="${bucket}:${key}"]`);
+        const label = document.querySelector(`[data-value="${bucket}:${key}"]`);
+        const update = (value) => {
+        const numeric = Number(value);
+        state[bucket][key] = numeric;
+        if (bucket === "h2" && key === "equipmentCapex") {
+          state.h2.equipmentRoute = "custom";
+          syncEquipmentRouteSelect();
+        }
+        if (bucket === "products" && !["greenPowerPrice", "co2CostT"].includes(key)) {
+          state.products.preset = "custom";
+          document.getElementById("productPresetSelect").value = "custom";
+        }
+        if (bucket === "chain" && key === "logisticsCost") {
+          state.chain.transportMode = "custom";
+          document.getElementById("chainTransportSelect").value = "custom";
+        }
+        if (bucket === "h2" && key === "capacityNm3h") {
+          state.h2.capacityMode = "nm3";
+          syncCapacityModeSelect();
+          syncCapacityFromNm3();
+        }
+        if (bucket === "h2" && key === "capacityKw") {
+          state.h2.capacityMode = "kw";
+          syncCapacityModeSelect();
+          syncCapacityFromKw();
+        }
+        if (bucket === "h2" && key === "energyIntensity") {
+          if (state.h2.capacityMode === "kw") {
+            syncCapacityFromKw();
+          } else {
+            syncCapacityFromNm3();
+          }
+        }
+        if (bucket === "h2" && ["capacityNm3h", "capacityKw", "capexFactor", "energyIntensity"].includes(key)) {
+          applyEquipmentRoute();
+        }
+        range.value = numeric;
+        number.value = numeric;
+        label.textContent = controlDisplayFor(bucket, key, numeric, unit, kind);
+        if (bucket === "h2") {
+          refreshH2ControlLabels();
+        }
+        if (bucket === "h2" && ["capacityNm3h", "capacityKw", "capexFactor", "energyIntensity"].includes(key)) {
+          syncEquipmentCapexControl();
+        }
+        render();
+      };
+        range.addEventListener("input", (event) => update(event.target.value));
+        number.addEventListener("input", (event) => update(event.target.value));
+      });
+    }
+
+    function metric(label, value, sub, tone = "") {
+      return `<div class="metric ${tone}"><span>${label}</span><strong>${value}</strong><small>${sub}</small></div>`;
+    }
+
+    function drawBarChart(canvas, items, options = {}) {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth * dpr;
+      const height = canvas.clientHeight * dpr;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      const pad = 40 * dpr;
+      const max = Math.max(...items.map(item => item.value), 1);
+      const chartW = width - pad * 2;
+      const chartH = height - pad * 1.8;
+      const barW = chartW / items.length * 0.56;
+      ctx.font = `${12 * dpr}px Inter, sans-serif`;
+      ctx.fillStyle = "#667085";
+      ctx.strokeStyle = "#d8dee7";
+      ctx.lineWidth = 1 * dpr;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad + chartH - chartH * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(width - pad, y);
+        ctx.stroke();
+      }
+      items.forEach((item, i) => {
+        const x = pad + chartW / items.length * i + chartW / items.length * 0.22;
+        const h = chartH * item.value / max;
+        const y = pad + chartH - h;
+        ctx.fillStyle = item.color || "#2563eb";
+        ctx.fillRect(x, y, barW, h);
+        ctx.fillStyle = "#16202a";
+        ctx.textAlign = "center";
+        ctx.fillText(options.format ? options.format(item.value) : fmt.num(item.value, 2), x + barW / 2, y - 8 * dpr);
+        ctx.fillStyle = "#667085";
+        ctx.fillText(item.label, x + barW / 2, height - 12 * dpr);
+      });
+    }
+
+    function drawLineChart(canvas, series, options = {}) {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth * dpr;
+      const height = canvas.clientHeight * dpr;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      const pad = 42 * dpr;
+      const values = series.flatMap(s => s.values);
+      const min = options.zero ? 0 : Math.min(...values, 0);
+      const max = Math.max(...values, 1);
+      const chartW = width - pad * 2;
+      const chartH = height - pad * 1.8;
+      ctx.strokeStyle = "#d8dee7";
+      ctx.lineWidth = 1 * dpr;
+      ctx.font = `${12 * dpr}px Inter, sans-serif`;
+      ctx.fillStyle = "#667085";
+      for (let i = 0; i <= 4; i++) {
+        const y = pad + chartH - chartH * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(width - pad, y);
+        ctx.stroke();
+      }
+      series.forEach((s) => {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 2.5 * dpr;
+        ctx.beginPath();
+        s.values.forEach((v, i) => {
+          const x = pad + (chartW * i / Math.max(1, s.values.length - 1));
+          const y = pad + chartH - ((v - min) / (max - min || 1)) * chartH;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+      const legendX = pad;
+      series.forEach((s, i) => {
+        const x = legendX + i * 116 * dpr;
+        const y = height - 12 * dpr;
+        ctx.fillStyle = s.color;
+        ctx.fillRect(x, y - 9 * dpr, 18 * dpr, 3 * dpr);
+        ctx.fillStyle = "#667085";
+        ctx.fillText(s.label, x + 24 * dpr, y - 4 * dpr);
+      });
+    }
+
+    function renderH2() {
+      const result = h2Model(state.h2);
+      const mix = projectMixModel(state.h2);
+      const route = equipmentRoutes[state.h2.equipmentRoute] || equipmentRoutes.alkLow;
+      const projectEquipCapex = projectEquipmentCapex(state.h2, route);
+      const routeBasis = route.rmbKw
+        ? `${fmt.num(route.rmbKw, 0)} 元/kW × ${fmt.num(result.ratedKw, 0)} kW × ${fmt.num(state.h2.capexFactor, 1)}x`
+        : route.per1000Wan
+          ? `${route.per1000Wan} 万元/千标方 / RMB 10k per 1,000 Nm3/h × ${fmt.num(state.h2.capacityNm3h, 0)} Nm3/h ÷ 1000 × ${fmt.num(state.h2.capexFactor, 1)}x`
+          : route.source;
+      const metrics = document.getElementById("metrics");
+      metrics.innerHTML = [
+        metric("单位制氢成本 / LCOH", fmt.cnMoney2(result.unitCost), `≈ ${fmt.usd2(toUsd(result.unitCost))}/kg H2`, result.unitCost <= state.h2.sellingPrice ? "good" : "bad"),
+        metric("单机产能 / Unit capacity", `${fmt.num(result.ratedKw, 0)} kW`, `${fmt.num(state.h2.capacityNm3h, 0)} Nm3/h / ${fmt.num(result.production / 1000, 1)} t/y`, "warn"),
+        metric("组合装机 / Mixed project", `${fmt.num(mix.installedKw / 1000, 1)} MW`, `${fmt.num(mix.installedNm3h, 0)} Nm3/h / ${fmt.num(mix.alkUnits, 0)} ALK + ${fmt.num(mix.pemUnits, 0)} PEM`, "good"),
+        metric("回收期 / Payback", Number.isFinite(result.payback) ? `${fmt.num(result.payback, 1)} 年 / years` : "不可回收 / N/A", `售价 / Price ${fmt.cnMoney2(state.h2.sellingPrice)}/kg`, Number.isFinite(result.payback) && result.payback <= state.h2.life ? "good" : "bad")
+      ].join("");
+
+      drawBarChart(document.getElementById("h2CostChart"), [
+        { label: "CAPEX", value: result.capexAnnual / result.production, color: "#2563eb" },
+        { label: "电力/Power", value: result.powerCost / result.production, color: "#16855b" },
+        { label: "水/Water", value: result.waterCost / result.production, color: "#4f46e5" },
+        { label: "维护/Maint.", value: state.h2.maintenance / result.production, color: "#b7791f" },
+        { label: "人工/Labor", value: state.h2.labor / result.production, color: "#c2413b" },
+        { label: "大修/Overhaul", value: result.overhaulAnnual / result.production, color: "#64748b" }
+      ], { format: (v) => fmt.cnMoney2(v) });
+
+      drawLineChart(document.getElementById("h2CashChart"), [
+        { label: "现金流/Cash flow", values: result.cashflows, color: "#2563eb" },
+        { label: "累计/Cumulative", values: result.cashflows.reduce((arr, v) => { arr.push((arr.at(-1) || 0) + v); return arr; }, []), color: "#16855b" }
+      ]);
+
+      const h2Rows = [
+        ["年产量 / Annual output", fmt.num(result.production, 0), "kg", "-", `${fmt.num(state.h2.capacityNm3h, 0)} Nm3/h × ${fmt.num(state.h2.density, 3)} kg/Nm3 × 天数 × 小时 / days × hours`],
+        ["额定功率 / Rated power", fmt.num(result.ratedKw, 0), "kW", "-", `${fmt.num(state.h2.capacityNm3h, 2)} Nm3/h × ${fmt.num(state.h2.energyIntensity, 2)} kWh/Nm3`],
+        ["折算公斤电耗 / Specific electricity", fmt.num(result.specificEnergyKg, 1), "kWh/kg H2", "-", `${fmt.num(state.h2.energyIntensity, 2)} kWh/Nm3 ÷ ${fmt.num(state.h2.density, 3)} kg/Nm3`],
+        ["电耗来源 / Electricity basis", "5.39 kWh/Nm3", "≈ 60.5 kWh/kg", "-", "YC-Format Centers.xlsx：4.5 kWh/Nm3 直流电耗，经电源、变压器、BOP、公用工程效率折算到系统侧 / Direct-current stack intensity adjusted to system/grid-side intensity"],
+        ["目标项目规模 / Target project scale", fmt.num(state.h2.projectPowerMw, 0), "MW", "-", `${fmt.num(mix.targetKw / 1000, 0)} MW；1000 Nm3/h = 5 MW 简化口径 / simplified sizing basis`],
+        ["单组配置 / Sizing block", `${fmt.num(state.h2.alkUnitsPerBlock, 0)} ALK + ${fmt.num(state.h2.pemUnitsPerBlock, 0)} PEM`, "台/组 / units/block", "-", `ALK ${fmt.num(state.h2.alkUnitNm3h, 0)} Nm3/h，PEM ${fmt.num(state.h2.pemUnitNm3h, 0)} Nm3/h`],
+        ["所需组数 / Blocks required", fmt.num(mix.blocks, 0), "组 / blocks", "-", `目标功率 ÷ 单组功率后向上取整 / ceiling(target power / block power)`],
+        ["电解槽台数 / Electrolyzer count", `${fmt.num(mix.alkUnits, 0)} ALK + ${fmt.num(mix.pemUnits, 0)} PEM`, "台 / units", "-", `PEM 功率占比 / PEM power share ${fmt.pct(mix.pemPowerShare)}`],
+        ["组合装机 / Installed mixed capacity", fmt.num(mix.installedKw / 1000, 1), "MW", "-", `${fmt.num(mix.installedNm3h, 0)} Nm3/h，冗余 / headroom ${fmt.pct(mix.spareRate)}`],
+        ["组合年产氢 / Mixed project annual H2", fmt.num(mix.annualProduction / 1000, 0), "t/year", "-", "组合装机标方 × 密度 × 年运行天数 × 小时 / installed Nm3/h x density x operating time"],
+        ["设备价格情景 / Equipment price case", route.label, "-", "-", routeBasis],
+        ["单机设备成本 / Unit equipment cost", fmt.cnMoney(state.h2.equipmentCapex), "元 / RMB", fmt.usd(toUsd(state.h2.equipmentCapex)), route.source],
+        ["组合设备成本 / Mixed project equipment cost", fmt.cnMoney(projectEquipCapex), "元 / RMB", fmt.usd(toUsd(projectEquipCapex)), `${fmt.num(mix.installedKw, 0)} kW × ${state.h2.equipmentRoute === "custom" ? "手工单机成本折算 / manual unit cost" : `${fmt.num(route.rmbKw, 0)} 元/kW × ${fmt.num(state.h2.capexFactor, 1)}x`}`],
+        ["总 CAPEX / Total CAPEX", fmt.cnMoney(result.capexTotal), "元 / RMB", fmt.usd(toUsd(result.capexTotal)), "设备成本 + 基础设施成本 / equipment + infrastructure"],
+        ["年化 CAPEX / Annualized CAPEX", fmt.cnMoney(result.capexAnnual), "元/年 / RMB/year", fmt.usd(toUsd(result.capexAnnual)), `总 CAPEX × CRF ${fmt.pct(result.capitalRecovery, 2)}（折现率 ${fmt.pct(state.h2.discountRate, 1)}、${fmt.num(state.h2.life, 0)} 年；资本回收系数已含融资成本，避免重复计算） / total CAPEX × CRF; financing is embedded in the capital recovery factor`],
+        ["年 OPEX / Annual OPEX", fmt.cnMoney(result.opex), "元/年 / RMB/year", fmt.usd(toUsd(result.opex)), "电力 + 水 + 维护 + 人工 + 大修年化提拨 / power + water + maintenance + labor + annualized overhaul"],
+        ["电力成本 / Power cost", fmt.cnMoney(result.powerCost), "元/年 / RMB/year", fmt.usd(toUsd(result.powerCost)), "Nm3 产量 × kWh/Nm3 × 电价 / Nm3 output × intensity × power price"],
+        ["水成本 / Water cost", fmt.cnMoney(result.waterCost), "元/年 / RMB/year", fmt.usd(toUsd(result.waterCost)), "产量 × 耗水 × 水价；水价按工业水 3-6 元/吨修正（原 Excel 0.02 USD/L 偏高约 20 倍） / output × water use × price; corrected to industrial water 3-6 RMB/t"],
+        ["大修提拨 / Overhaul reserve", fmt.cnMoney(result.overhaulAnnual), "元/年 / RMB/year", fmt.usd(toUsd(result.overhaulAnnual)), `设备成本 × ${fmt.pct(state.h2.overhaulRatio, 0)} ÷ 大修周期 ${fmt.num(result.overhaulIntervalYears, 1)} 年（${fmt.num(state.h2.overhaulHours, 0)} 小时触发，依据《电解槽的大修》≥30,000h 或 3-4 年） / equipment cost × ratio ÷ interval years (trigger ≥30,000 h per overhaul guide)`],
+        ["年收入 / Annual revenue", fmt.cnMoney(result.revenue), "元/年 / RMB/year", fmt.usd(toUsd(result.revenue)), "产量 × 售价 / output × selling price"],
+        ["EBITDA", fmt.cnMoney(result.ebitda), "元/年 / RMB/year", fmt.usd(toUsd(result.ebitda)), "收入 - 现金 OPEX（不含大修提拨，大修在现金流中按实际大修年扣减） / revenue - cash OPEX; overhaul hits cash flow in overhaul years"],
+        ["项目 NPV / Project NPV", fmt.cnMoney(result.projectNpv), "元 / RMB", fmt.usd(toUsd(result.projectNpv)), "全股权现金流按折现率折现；年现金流 = 收入 - 现金 OPEX - 当年大修 / all-equity flows discounted at the discount rate"],
+        ["项目 IRR / Project IRR", result.projectIrr === null ? "N/A（现金流无解 / no solution）" : fmt.pct(result.projectIrr), "-", "-", "对标央企税前全投资 IRR 红线 6%-6.5%（大唐 2025） / benchmark: SOE pre-tax full-investment IRR hurdle 6-6.5% (Datang 2025)"]
+      ];
+      document.getElementById("h2Table").innerHTML = h2Rows
+        .map(row => `<tr>${row.slice(0, 4).map(cell => `<td>${cell}</td>`).join("")}</tr>`)
+        .join("");
+      const noteRows = h2Rows.filter(row => row[4] && row[4] !== "-");
+      document.getElementById("h2Notes").innerHTML = [
+        "<div><strong>备注 / Notes</strong>：制氢单位成本 LCOH = (总 CAPEX × 资本回收系数 CRF + 年 OPEX 含大修提拨) / 年产氢量；CRF 已包含资金成本，不再单列融资利息（修正原 Excel 折旧+全额利息的重复计算）。人民币为主口径，美元按顶部汇率折算。</div>",
+        ...noteRows.map(row => `<div><strong>${row[0]}</strong>：${row[4]}</div>`)
+      ].join("");
+    }
+
+    function renderPower() {
+      const pv = powerModel("pv", state.power);
+      const wind = powerModel("wind", state.power);
+      const metrics = document.getElementById("metrics");
+      metrics.innerHTML = [
+        metric("PV LCOE", fmt.cnMoney2(pv.lcoe), "元/kWh / RMB/kWh", "good"),
+        metric("风电 LCOE / Wind LCOE", fmt.cnMoney2(wind.lcoe), "元/kWh / RMB/kWh", wind.lcoe <= pv.lcoe ? "good" : "warn"),
+        metric("PV 首年发电 / First-year PV generation", `${fmt.num(pv.baseGenKwh / 1000000, 1)} GWh`, `${state.power.pvCapacity} MWp`),
+        metric("风电首年发电 / First-year wind generation", `${fmt.num(wind.baseGenKwh / 1000000, 1)} GWh`, `${state.power.windCapacity} MW`)
+      ].join("");
+
+      drawBarChart(document.getElementById("powerBarChart"), [
+        { label: "PV", value: pv.lcoe, color: "#2563eb" },
+        { label: "风电/Wind", value: wind.lcoe, color: "#16855b" }
+      ], { format: (v) => fmt.cnMoney2(v) });
+
+      drawLineChart(document.getElementById("powerGenChart"), [
+        { label: "PV", values: pv.generation.map(v => v / 1000000), color: "#2563eb" },
+        { label: "风电/Wind", values: wind.generation.map(v => v / 1000000), color: "#16855b" }
+      ], { zero: true });
+
+      document.getElementById("powerTable").innerHTML = [
+        ["容量 / Capacity", fmt.num(pv.capacity, 0), fmt.num(wind.capacity, 0), "MW"],
+        ["总投资 / Total CAPEX", fmt.cnMoney(pv.capex), fmt.cnMoney(wind.capex), "元 / RMB"],
+        ["首年发电量 / First-year generation", fmt.num(pv.baseGenKwh / 1000000, 1), fmt.num(wind.baseGenKwh / 1000000, 1), "GWh"],
+        ["首年 OPEX / First-year OPEX", fmt.cnMoney(pv.annualOpex), fmt.cnMoney(wind.annualOpex), "元/年 / RMB/year"],
+        ["折现总成本 / Discounted total cost", fmt.cnMoney(pv.discountedCost), fmt.cnMoney(wind.discountedCost), "元 / RMB"],
+        ["折现上网电量 / Discounted delivered electricity", fmt.num(pv.discountedGen / 1000000, 1), fmt.num(wind.discountedGen / 1000000, 1), "GWh"],
+        ["LCOE", fmt.cnMoney2(pv.lcoe), fmt.cnMoney2(wind.lcoe), "元/kWh / RMB/kWh"]
+      ].map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("");
+    }
+
+    function renderChain() {
+      const result = chainModel();
+      const profile = chainProfiles[state.chain.application];
+      const transport = transportProfiles[state.chain.transportMode] || transportProfiles.custom;
+      document.getElementById("metrics").innerHTML = [
+        metric("净等效成本 / Net effective cost", fmt.cnMoney2(result.netEffectiveCost), `落地 / Delivered ${fmt.cnMoney2(result.deliveredCost)} - 碳价值 / Carbon value ${fmt.cnMoney2(result.carbonValue)}`, result.margin >= 0 ? "good" : "bad"),
+        metric("终端支付意愿 / End-market WTP", fmt.cnMoney2(result.wtpRmb), `${fmt.num(state.chain.wtpEurKg, 1)} EUR/kg`, result.wtpRmb >= result.netEffectiveCost ? "good" : "warn"),
+        metric("单位空间 / Unit margin", fmt.cnMoney2(result.margin), `年化 / Annualized ${fmt.cnMoney(result.annualValue)}`, result.margin >= 0 ? "good" : "bad"),
+        metric("打平碳价 / Break-even carbon price", `${fmt.num(result.breakEvenCarbonPrice, 0)} EUR/t`, profile.label)
+      ].join("");
+
+      drawBarChart(document.getElementById("chainCostChart"), [
+        { label: "制氢/H2", value: result.unitCost, color: "#2563eb" },
+        { label: "储运/Logistics", value: state.chain.logisticsCost, color: "#64748b" },
+        { label: "认证/Cert.", value: state.chain.certificationCost, color: "#4f46e5" },
+        { label: "转换/Conversion", value: state.chain.conversionCost, color: "#b7791f" },
+        { label: "贸易/Margin", value: result.deliveredCost - result.directCost, color: "#16855b" }
+      ], { format: (v) => fmt.cnMoney2(v) });
+
+      drawBarChart(document.getElementById("chainPolicyChart"), [
+        { label: "落地/Delivered", value: result.deliveredCost, color: "#64748b" },
+        { label: "碳价值/Carbon", value: result.carbonValue, color: "#16855b" },
+        { label: "净成本/Net", value: Math.max(0, result.netEffectiveCost), color: "#2563eb" },
+        { label: "支付意愿/WTP", value: result.wtpRmb, color: "#b7791f" }
+      ], { format: (v) => fmt.cnMoney2(v) });
+
+      document.getElementById("chainTable").innerHTML = [
+        ["PDF 参考场景 / PDF reference case", profile.label, "-", profile.policy],
+        ["制氢成本 / H2 cost", fmt.cnMoney2(result.unitCost), "元/kg / RMB/kg", "沿用当前“制氢成本”页参数 / uses current H2 cost tab parameters"],
+        ["储运价格来源 / Transport cost source", transport.label, fmt.cnMoney2(state.chain.logisticsCost) + "/kg", transport.source],
+        ["链条落地成本 / Delivered chain cost", fmt.cnMoney2(result.deliveredCost), "元/kg / RMB/kg", "制氢 + 储运 + 认证 + 转换，再加贸易/服务毛利 / H2 + logistics + certification + conversion + service margin"],
+        ["碳政策价值 / Carbon policy value", fmt.cnMoney2(result.carbonValue), "元/kg / RMB/kg", "规避碳排 × 碳价/罚款 × 惩罚倍数 × 覆盖比例 / avoided emissions × carbon price or penalty × multiplier × coverage"],
+        ["净等效成本 / Net effective cost", fmt.cnMoney2(result.netEffectiveCost), "元/kg / RMB/kg", "链条落地成本 - 碳政策价值 / delivered cost - carbon policy value"],
+        ["终端支付意愿 / End-market WTP", `${fmt.cnMoney2(result.wtpRmb)} / ${fmt.num(state.chain.wtpEurKg, 1)} EUR`, "元/kg / RMB/kg", "来自 PDF 的欧盟下游支付意愿口径，可手动改 / PDF EU downstream WTP benchmark, editable"],
+        ["单位经济性 / Unit economics", fmt.cnMoney2(result.margin), "元/kg / RMB/kg", "支付意愿 - 净等效成本 / WTP - net effective cost"],
+        ["年化经济性 / Annualized economics", fmt.cnMoney(result.annualValue), "元/年 / RMB/year", "单位经济性 × 当前年产氢量 / unit margin × current H2 output"],
+        ["打平所需碳价 / Required break-even carbon price", `${fmt.num(result.breakEvenCarbonPrice, 0)} EUR/t`, "CO2e", "让净等效成本等于支付意愿的最低碳价/罚款基准 / minimum carbon price or penalty for net cost to equal WTP"]
+      ].map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("");
+    }
+
+    function renderProducts() {
+      const basis = productBasis();
+      const result = productModelAtPowerPrice(basis.powerPrice, basis.h2Cost);
+      const rows = result.products;
+      const ammonia = rows.find(row => row.key === "ammonia");
+      const methanol = rows.find(row => row.key === "methanol");
+      const esaf = rows.find(row => row.key === "esaf");
+      const preset = productPresets[state.products.preset];
+      document.getElementById("metrics").innerHTML = [
+        metric("氢价口径 / H2 cost basis", fmt.cnMoney2(basis.h2Cost), basis.label, basis.h2Cost <= state.h2.sellingPrice ? "good" : "warn"),
+        metric("绿氨价格 / Green ammonia price", `${fmt.cnMoney(ammonia.totalCost)}/t`, `${fmt.cnMoney2(ammonia.h2Cost / ammonia.h2KgT)}/kg H2 传导 / pass-through`),
+        metric("绿色甲醇价格 / Green methanol price", `${fmt.cnMoney(methanol.totalCost)}/t`, `CO2 ${fmt.cnMoney(state.products.co2CostT)}/t`),
+        metric("eSAF 价格 / eSAF price", `${fmt.cnMoney(esaf.totalCost)}/t`, preset ? preset.note : "手动参数 / Manual inputs")
+      ].join("");
+
+      drawBarChart(document.getElementById("productPriceChart"), rows.map((row, index) => ({
+        label: ["NH3", "MeOH", "eSAF"][index],
+        value: row.totalCost,
+        color: ["#2563eb", "#16855b", "#b7791f"][index]
+      })), { format: (v) => `${fmt.num(v / 1000, 1)}k` });
+
+      const powerPrices = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.2, 1.5];
+      const sensitivity = powerPrices.map(price => productModelAtPowerPrice(price, basis.mode === "manualH2" ? state.products.manualH2Price : undefined));
+      drawLineChart(document.getElementById("productSensitivityChart"), [
+        { label: "绿氨/NH3", values: sensitivity.map(item => item.products[0].totalCost), color: "#2563eb" },
+        { label: "甲醇/MeOH", values: sensitivity.map(item => item.products[1].totalCost), color: "#16855b" },
+        { label: "eSAF", values: sensitivity.map(item => item.products[2].totalCost), color: "#b7791f" }
+      ], { zero: true });
+
+      document.getElementById("productTable").innerHTML = rows.map(row => {
+        const breakdown = [
+          `H2 ${fmt.cnMoney(row.h2Cost)}`,
+          row.co2Cost > 0 ? `CO2 ${fmt.cnMoney(row.co2Cost)}` : "",
+          `辅电/Aux. ${fmt.cnMoney(row.auxPowerCost)}`,
+          `其他/Other ${fmt.cnMoney(row.otherCostT)}`
+        ].filter(Boolean).join(" + ");
+        return `<tr>
+          <td>${row.name}<br><small>${row.route}</small></td>
+          <td>${fmt.cnMoney(row.totalCost)}/t<br><small>≈ ${fmt.usd(toUsd(row.totalCost))}/t</small></td>
+          <td>${fmt.num(row.h2KgT, 1)} kg/t</td>
+          <td>${fmt.num(row.co2TonT, 3)} t/t</td>
+          <td>${breakdown}</td>
+          <td>${row.basis}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderCompare() {
+      const h2Base = { ...state.h2 };
+      const powerBase = { ...state.power };
+      const h2Values = [];
+      const prices = [];
+      for (let p = 0.272; p <= 1.36; p += 0.136) {
+        prices.push(p);
+        h2Values.push(h2Model({ ...h2Base, electricityPrice: p }).unitCost);
+      }
+      const pvValues = [];
+      const windValues = [];
+      const labels = [];
+      for (let f = 0.7; f <= 1.3; f += 0.1) {
+        labels.push(f);
+        pvValues.push(powerModel("pv", { ...powerBase, pvCapexKw: powerBase.pvCapexKw * f }).lcoe);
+        windValues.push(powerModel("wind", { ...powerBase, windCapexKw: powerBase.windCapexKw * f }).lcoe);
+      }
+      document.getElementById("metrics").innerHTML = [
+        metric("当前制氢成本 / Current LCOH", fmt.cnMoney2(h2Model(h2Base).unitCost), `≈ ${fmt.usd2(toUsd(h2Model(h2Base).unitCost))}/kg H2`),
+        metric("当前 PV LCOE / Current PV LCOE", fmt.cnMoney2(powerModel("pv", powerBase).lcoe), "元/kWh / RMB/kWh"),
+        metric("当前风电 LCOE / Current wind LCOE", fmt.cnMoney2(powerModel("wind", powerBase).lcoe), "元/kWh / RMB/kWh"),
+        metric("敏感性范围 / Sensitivity range", "70-130%", "投资单价压力区间 / CAPEX unit-cost stress range")
+      ].join("");
+      drawLineChart(document.getElementById("sensitivityPowerPrice"), [
+        { label: "制氢成本/LCOH", values: h2Values, color: "#2563eb" }
+      ], { zero: true });
+      drawLineChart(document.getElementById("sensitivityCapex"), [
+        { label: "PV LCOE", values: pvValues, color: "#2563eb" },
+        { label: "风电/Wind LCOE", values: windValues, color: "#16855b" }
+      ], { zero: true });
+    }
+
+    function render() {
+      document.querySelectorAll("[id^='view-']").forEach(section => section.classList.add("hidden"));
+      document.getElementById(`view-${state.view}`).classList.remove("hidden");
+      const titles = {
+        h2: ["制氢成本模型 / H2 Cost Model", "把 Excel 中的关键制氢参数转成可调输入，实时查看人民币单位制氢成本、美元折算、年产量、NPV 和投资回收期。 / Converts key Excel hydrogen parameters into adjustable inputs and shows RMB LCOH, USD conversion, annual output, NPV and payback."],
+        power: ["风光电成本模型 / Renewable Power LCOE Model", "把 PV 与风电投资、发电小时数和运维假设做成 LCOE 对比，便于评估绿电供给侧经济性。 / Compares PV and wind LCOE using CAPEX, full-load hours and O&M assumptions to evaluate renewable power supply economics."],
+        chain: ["全链条经济性 / Value Chain Economics", "把制氢成本、储运认证、终端支付意愿和欧盟碳价/罚款机制接在一起，看不同消纳场景是否跑通。 / Connects H2 cost, logistics, certification, end-market WTP and EU carbon-price or penalty mechanisms across offtake scenarios."],
+        products: ["衍生品联动模型 / PtX Product Linkage Model", "默认与制氢成本页联动（电价、氢价自动带入），也可切换为本页绿电价重算或直接手填氢价，按路线耗氢量传导到绿氨、绿色甲醇和 eSAF 价格。 / Linked to the H2 cost tab by default (power and H2 prices carried over automatically); switch to manual power-price recalc or a manually entered H2 price, passed through route-specific H2 consumption to ammonia, methanol and eSAF prices."],
+        compare: ["敏感性对比 / Sensitivity Comparison", "快速看电价、CAPEX 对制氢成本和风光电 LCOE 的影响。 / Quickly tests how power price and CAPEX affect H2 cost and renewable power LCOE."]
+      };
+      document.getElementById("pageTitle").textContent = "氢气经济模具交互界面 / Hydrogen Economy Model Interactive Interface";
+      document.getElementById("pageSubtitle").textContent = `${titles[state.view][0]} | ${titles[state.view][1]}`;
+      if (state.view === "h2") renderH2();
+      if (state.view === "power") renderPower();
+      if (state.view === "chain") renderChain();
+      if (state.view === "products") renderProducts();
+      if (state.view === "compare") renderCompare();
+    }
+
+    document.querySelectorAll(".nav button").forEach(button => {
+      button.addEventListener("click", () => {
+        state.view = button.dataset.view;
+        document.querySelectorAll(".nav button").forEach(btn => btn.setAttribute("aria-selected", String(btn === button)));
+        render();
+      });
+    });
+
+    document.getElementById("scenarioSelect").addEventListener("change", (event) => {
+      const equipmentRoute = equipmentRoutes[state.h2.equipmentRoute] ? state.h2.equipmentRoute : "alkLow";
+      const capexFactor = state.h2.capexFactor;
+      const capacityMode = state.h2.capacityMode;
+      state.h2 = { ...h2Defaults, ...scenarios[event.target.value], equipmentRoute, capexFactor, capacityMode };
+      if (state.h2.capacityMode === "kw") {
+        syncCapacityFromKw();
+      } else {
+        syncCapacityFromNm3();
+      }
+      groupedControls("h2Controls", h2Fields, state.h2, "h2");
+      bindControls(h2Fields, "h2");
+      syncEquipmentRouteSelect();
+      applyEquipmentRoute();
+      render();
+    });
+
+    document.getElementById("exchangeRateSelect").addEventListener("change", (event) => {
+      state.exchangeRate = Number(event.target.value);
+      groupedControls("h2Controls", h2Fields, state.h2, "h2");
+      bindControls(h2Fields, "h2");
+      syncEquipmentRouteSelect();
+      render();
+    });
+
+    document.getElementById("chainApplicationSelect").addEventListener("change", (event) => {
+      const profile = chainProfiles[event.target.value];
+      state.chain = {
+        ...state.chain,
+        application: event.target.value,
+        carbonPriceEur: profile.carbonPriceEur,
+        penaltyMultiplier: profile.penaltyMultiplier,
+        policyCoverage: profile.policyCoverage,
+        avoidedEmissionKg: profile.avoidedEmissionKg,
+        conversionCost: profile.conversionCost,
+        wtpEurKg: profile.wtpEurKg
+      };
+      applyTransportProfile();
+      groupedControls("chainControls", chainFields, state.chain, "chain");
+      bindControls(chainFields, "chain");
+      render();
+    });
+
+    document.getElementById("chainTransportSelect").addEventListener("change", (event) => {
+      state.chain.transportMode = event.target.value;
+      applyTransportProfile();
+      groupedControls("chainControls", chainFields, state.chain, "chain");
+      bindControls(chainFields, "chain");
+      render();
+    });
+
+    document.getElementById("productLinkModeSelect").addEventListener("change", (event) => {
+      state.products.linkMode = event.target.value;
+      render();
+    });
+
+    document.getElementById("productPresetSelect").addEventListener("change", (event) => {
+      const preset = productPresets[event.target.value];
+      state.products = preset
+        ? { ...state.products, ...preset, preset: event.target.value }
+        : { ...state.products, preset: "custom" };
+      syncProductRouteSelects();
+      groupedControls("productControls", productFields, state.products, "products");
+      bindControls(productFields, "products");
+      render();
+    });
+
+    document.getElementById("ammoniaRouteSelect").addEventListener("change", (event) => {
+      applyProductRoute("ammonia", event.target.value);
+      groupedControls("productControls", productFields, state.products, "products");
+      bindControls(productFields, "products");
+      render();
+    });
+
+    document.getElementById("methanolRouteSelect").addEventListener("change", (event) => {
+      applyProductRoute("methanol", event.target.value);
+      groupedControls("productControls", productFields, state.products, "products");
+      bindControls(productFields, "products");
+      render();
+    });
+
+    document.getElementById("esafRouteSelect").addEventListener("change", (event) => {
+      applyProductRoute("esaf", event.target.value);
+      groupedControls("productControls", productFields, state.products, "products");
+      bindControls(productFields, "products");
+      render();
+    });
+
+    document.getElementById("capacityBasisSelect").addEventListener("change", (event) => {
+      state.h2.capacityMode = event.target.value;
+      syncCapacityModeSelect();
+      render();
+    });
+
+    document.getElementById("equipmentRouteSelect").addEventListener("change", (event) => {
+      state.h2.equipmentRoute = event.target.value;
+      syncEquipmentRouteSelect();
+      applyEquipmentRoute();
+      groupedControls("h2Controls", h2Fields, state.h2, "h2");
+      bindControls(h2Fields, "h2");
+      render();
+    });
+
+    groupedControls("h2Controls", h2Fields, state.h2, "h2");
+    groupedControls("powerControls", powerFields, state.power, "power");
+    groupedControls("chainControls", chainFields, state.chain, "chain");
+    groupedControls("productControls", productFields, state.products, "products");
+    syncCapacityModeSelect();
+    syncCapacityFromNm3();
+    syncEquipmentRouteSelect();
+    applyEquipmentRoute();
+    syncProductRouteSelects();
+    document.getElementById("productLinkModeSelect").value = state.products.linkMode;
+    syncTransportSelect();
+    bindControls(h2Fields, "h2");
+    bindControls(powerFields, "power");
+    bindControls(chainFields, "chain");
+    bindControls(productFields, "products");
+    render();
+    window.addEventListener("resize", render);
+  </script>
+</body>
+</html>
