@@ -673,8 +673,7 @@
               </label>
               <select id="productLinkModeSelect" style="border:1px solid var(--line); border-radius:var(--radius); padding:9px; width:100%;">
                 <option value="linked">联动制氢页（电价+氢价自动带入） / Linked to H2 cost tab</option>
-                <option value="manualPower">本页绿电价重算氢价 / Recalc H2 cost from this page's power price</option>
-                <option value="manualH2">直接手填氢价 / Manual H2 price</option>
+                <option value="manualH2">直接手填氢价（辅电用制氢页电价） / Manual H2 price (aux power from H2 tab)</option>
               </select>
             </div>
             <div class="control">
@@ -726,7 +725,7 @@
             </div>
           </div>
           <div class="controls" id="productControls"></div>
-          <div class="formula">原料价格 = 绿电价驱动的制氢成本 × 单吨产品耗氢 + CO2 成本 × 单吨产品耗 CO2 + 辅助电耗 × 绿电价 + 其他转化成本。默认值用于战略筛选，可按具体装置、碳源、认证边界和副产物分摊调整。 / Product price = power-linked H2 cost x H2 consumption + CO2 cost x CO2 consumption + auxiliary power x renewable power price + other conversion cost. Defaults are for screening and can be adjusted for the actual plant, carbon source, certification boundary and by-product allocation.</div>
+          <div class="formula">原料价格 = 制氢成本 × 单吨产品耗氢 + CO2 成本 × 单吨产品耗 CO2 + 辅助电耗 × 制氢页电价 + 其他转化成本。辅助电价与氢价均联动制氢页电价，无需在本页单独设置。默认值用于战略筛选，可按具体装置、碳源、认证边界和副产物分摊调整。 / Product price = H2 cost x H2 consumption + CO2 cost x CO2 consumption + auxiliary power x H2-tab power price + other conversion cost. Both auxiliary power price and hydrogen cost are linked to the H2 tab's power price, so no separate setting is needed here. Defaults are for screening and can be adjusted for the actual plant, carbon source, certification boundary and by-product allocation.</div>
         </div>
         <div class="panel">
           <div class="panel-head">
@@ -1129,7 +1128,6 @@
     const productDefaults = {
       preset: "base",
       linkMode: "linked",
-      greenPowerPrice: 0.68,
       manualH2Price: 30,
       co2CostT: 480,
       ...productPresets.base
@@ -1209,7 +1207,6 @@
     ];
 
     const productFields = [
-      ["通用 / General", "greenPowerPrice", "绿电价格（手工模式用） / Renewable power price (manual modes)", "元/kWh / RMB/kWh", 0.1, 2, 0.01],
       ["通用 / General", "manualH2Price", "手填氢价（手填模式用） / Manual H2 price (manual H2 mode)", "元/kg / RMB/kg", 5, 80, 0.5],
       ["通用 / General", "co2CostT", "CO2 成本 / CO2 cost", "元/tCO2 / RMB/tCO2", 0, 1500, 10],
       ["绿氨 / Green ammonia", "ammoniaH2KgT", "耗氢 / H2 consumption", "kg H2/t NH3", 150, 240, 0.5],
@@ -1553,29 +1550,20 @@
 
     function productBasis() {
       const mode = state.products.linkMode || "linked";
-      if (mode === "linked") {
-        const h2 = h2Model(state.h2);
-        return {
-          mode,
-          powerPrice: state.h2.electricityPrice,
-          h2Cost: h2.unitCost,
-          label: `联动制氢页：电价 ${fmt.cnMoney2(state.h2.electricityPrice)}/kWh -> LCOH ${fmt.cnMoney2(h2.unitCost)}/kg / Linked to H2 tab`
-        };
-      }
       if (mode === "manualH2") {
         return {
           mode,
-          powerPrice: state.products.greenPowerPrice,
+          powerPrice: state.h2.electricityPrice,
           h2Cost: state.products.manualH2Price,
-          label: `手填氢价 ${fmt.cnMoney2(state.products.manualH2Price)}/kg，辅电按本页绿电价 / Manual H2 price; aux power at this page's price`
+          label: `手填氢价 ${fmt.cnMoney2(state.products.manualH2Price)}/kg，辅电按制氢页电价 ${fmt.cnMoney2(state.h2.electricityPrice)}/kWh / Manual H2 price; aux power at H2 tab power price`
         };
       }
-      const h2 = h2ModelAtPowerPrice(state.products.greenPowerPrice);
+      const h2 = h2Model(state.h2);
       return {
-        mode,
-        powerPrice: state.products.greenPowerPrice,
+        mode: "linked",
+        powerPrice: state.h2.electricityPrice,
         h2Cost: h2.unitCost,
-        label: `本页绿电 ${fmt.cnMoney2(state.products.greenPowerPrice)}/kWh 重算 LCOH ${fmt.cnMoney2(h2.unitCost)}/kg / Recalculated from this page's power price`
+        label: `联动制氢页：电价 ${fmt.cnMoney2(state.h2.electricityPrice)}/kWh -> LCOH ${fmt.cnMoney2(h2.unitCost)}/kg / Linked to H2 tab`
       };
     }
 
@@ -1718,7 +1706,7 @@
           state.h2.equipmentRoute = "custom";
           syncEquipmentRouteSelect();
         }
-        if (bucket === "products" && !["greenPowerPrice", "co2CostT"].includes(key)) {
+        if (bucket === "products" && !["co2CostT"].includes(key)) {
           state.products.preset = "custom";
           document.getElementById("productPresetSelect").value = "custom";
         }
